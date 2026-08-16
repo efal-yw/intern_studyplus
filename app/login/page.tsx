@@ -9,6 +9,7 @@ type Mode = "login" | "signup";
 export default function LoginPage() {
   const router = useRouter();
   const [mode, setMode] = useState<Mode>("login");
+  const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
@@ -41,6 +42,7 @@ export default function LoginPage() {
       email,
       password,
       options: {
+        data: { username },
         emailRedirectTo: `${window.location.origin}/auth/confirm`,
       },
     });
@@ -79,6 +81,21 @@ export default function LoginPage() {
           {mode === "login" ? "ログイン" : "新規登録"}
         </h1>
         <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+          {mode === "signup" && (
+            <div className="flex flex-col gap-1">
+              <label htmlFor="username" className="text-sm text-zinc-600">
+                ユーザー名
+              </label>
+              <input
+                id="username"
+                type="text"
+                required
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
+                className="rounded border border-black/[.15] px-3 py-2 text-black outline-none focus:border-black/40"
+              />
+            </div>
+          )}
           <div className="flex flex-col gap-1">
             <label htmlFor="email" className="text-sm text-zinc-600">
               メールアドレス

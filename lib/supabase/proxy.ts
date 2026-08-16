@@ -28,10 +28,32 @@ export async function updateSession(request: NextRequest) {
 
   // createServerClientとgetClaims()の間に他の処理を挟まないこと。
   // 挟むとユーザーが意図せずログアウトされるバグの原因になりうる。
-  await supabase.auth.getClaims();
+  const { data } = await supabase.auth.getClaims();
+  const user = data?.claims;
 
-  // TODO: ログイン画面を作ったら、未認証ユーザーを /login へ
-  // リダイレクトする処理をここに追加する。
+  const pathname = request.nextUrl.pathname;
+  const isAuthRoute = pathname.startsWith("/auth/");
+  const isLoginPage = pathname === "/login";
+
+  if (!user && !isLoginPage && !isAuthRoute) {
+    const url = request.nextUrl.clone();
+    url.pathname = "/login";
+    const response = NextResponse.redirect(url);
+    supabaseResponse.cookies.getAll().forEach((cookie) => {
+      response.cookies.set(cookie);
+    });
+    return response;
+  }
+
+  if (user && isLoginPage) {
+    const url = request.nextUrl.clone();
+    url.pathname = "/";
+    const response = NextResponse.redirect(url);
+    supabaseResponse.cookies.getAll().forEach((cookie) => {
+      response.cookies.set(cookie);
+    });
+    return response;
+  }
 
   return supabaseResponse;
 }

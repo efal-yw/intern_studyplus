@@ -2,10 +2,14 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { NAV_ITEMS } from "../_lib/navigation";
+import { AUTH_PATH, NAV_ITEMS } from "../_lib/navigation";
 
 export default function Footer() {
   const pathname = usePathname();
+
+  if (pathname === AUTH_PATH) {
+    return null;
+  }
 
   return (
     <footer className="sticky bottom-0 z-10 flex shrink-0 border-t border-black/[.08] bg-white">

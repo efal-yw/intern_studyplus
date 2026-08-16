@@ -3,3 +3,5 @@ export const NAV_ITEMS = [
   { href: "/record", label: "記録する" },
   { href: "/mypage", label: "マイページ" },
 ] as const;
+
+export const AUTH_PATH = "/login";

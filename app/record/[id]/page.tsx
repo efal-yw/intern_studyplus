@@ -12,12 +12,12 @@ type Textbook = {
 export default async function TextbookDetailPage({
   params,
 }: {
-  params: { id: string };
+  params: Promise<{ id: string }>;
 }) {
   const supabase = await createClient();
 
   // 1. URLの /record/123 から "123" を取り出す
-  const textbookId = params.id;
+  const { id: textbookId } = await params;
 
   // 2. Supabaseに「idが一致する教材を1個だけちょうだい」とお願いする
   const { data: textbook, error } = await supabase

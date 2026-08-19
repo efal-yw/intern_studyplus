@@ -1,4 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
+import Link from "next/link";
 import { notFound } from "next/navigation"; // 404ページを出すための機能
 
 // 型定義（一覧ページと同じもの）
@@ -31,8 +32,17 @@ export default async function TextbookDetailPage({
     notFound();
   }
 
-  // 4. 無事にデータが取れたら画面を表示する
+
+  //　上まではAIにかいてもらったにょ。
+
   return (
+    <>
+    <div className="flex items-start gap-3 p-3">
+    <Link href="/record">戻る</Link>
+    <h1 className="grow text-center">記録の入力</h1>
+    <button>記録</button>
+    </div>
+
     <div className="flex flex-col gap-4 p-6">
       <h1 className="text-2xl font-bold text-zinc-800">
         {textbook.name}
@@ -45,5 +55,7 @@ export default async function TextbookDetailPage({
       {/* ここに教材の中身や設定画面などを自由に作っていく */}
 
     </div>
+
+    </>
   );
 }

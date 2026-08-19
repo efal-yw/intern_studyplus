@@ -37,6 +37,8 @@ export default async function RecordPage() {
         <Link href="/knowledge">knowledge</Link>
       </div>
 
+      <div>
+        <h2>カテゴリー</h2>
       <div className="grid grid-cols-4 gap-4">
         {textbooks.map((textbook) => (
           <Link
@@ -47,6 +49,8 @@ export default async function RecordPage() {
           </Link>
         ))}
       </div>
+      </div>
+
     </div>
   );
 }

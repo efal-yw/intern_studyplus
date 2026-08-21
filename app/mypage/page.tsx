@@ -46,18 +46,14 @@ export default async function MyPage() {
           alt="favicon"
            width={32}
            height={32}
-           className="size-square rounded-full"
+          className="aspect-square rounded-full"
         />
-        {name && <p className="text-lg font-semibold text-black">{name}</p>}
-        {status_message ? <p>{status_message}</p> : <p>ステータスメッセージは未設定です</p>}
-        
-        <div className="flex items-center gap-2">
-          <p><strong>{following_count} </strong>フォロー中</p>
-          <p>|</p>
-          <p><strong>{follower_count} </strong>フォロワー</p>
-        </div>
+        {profile?.name && (
+          <p className="text-lg font-semibold text-black">{profile.name}</p>
+        )}
+        <StatusMessage />
+        {profile && <ProfileStats profile={profile} />}
       </div>
-
 
       <SignOutButton />
     </div>

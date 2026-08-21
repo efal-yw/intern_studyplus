@@ -1,7 +1,10 @@
-import { createClient } from "@/lib/supabase/server";
-import SignOutButton from "../_components/SignOutButton";
+"use client";
+
+import { useEffect, useState, type FormEvent } from "react";
 import Image from "next/image";
-import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { createClient } from "@/lib/supabase/client";
+import SignOutButton from "../_components/SignOutButton";
 
 type Profile = {
   name: string | null;
@@ -9,33 +12,6 @@ type Profile = {
   follower_count: number | null;
   status_message: string | null;
 };
-
-async function getProfile(): Promise<Profile | null> {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  if (!user) {
-    return null;
-  }
-
-  const { data: profile } = await supabase
-    .from("users")
-    .select("name, following_count, follower_count, status_message")
-    .eq("id", user.id)
-    .single();
-
-  return {
-    name: profile?.name ?? null,
-    following_count: profile?.following_count ?? null,
-    follower_count: profile?.follower_count ?? null,
-    status_message: profile?.status_message ?? null,
-  };
-}
-
-
-
 
 function ProfileStats({ profile }: { profile: Profile }) {
   return (
@@ -51,37 +27,143 @@ function ProfileStats({ profile }: { profile: Profile }) {
   );
 }
 
-function StatusMessage({ profile }: { profile: Profile }, supabase: any, user: any) {
-  const [onEdit, setOnEdit] = useState(false);
-  
-  async function EditHandleClick(setOnEdit: React.Dispatch<React.SetStateAction<boolean>>, onEdit: boolean) {
-    setOnEdit(!onEdit);
-    const nextStatusMessage = document.getElementById("status-message")?.value || "";
-    const { data: profile, error } = await supabase
-    .from("users")
-    .update({ status_message: nextStatusMessage })
-    .eq("id", user.id)
+function StatusMessage({
+  profile,
+  userId,
+  onSaved,
+}: {
+  profile: Profile;
+  userId: string;
+  onSaved: (statusMessage: string) => void;
+}) {
+  const [isEditing, setIsEditing] = useState(false);
+  const [draftMessage, setDraftMessage] = useState(profile.status_message ?? "");
+  const [isSaving, setIsSaving] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  function handleEditStart() {
+    setDraftMessage(profile.status_message ?? "");
+    setError(null);
+    setIsEditing(true);
   }
 
-  return (
-    <>
-      {!onEdit ? (
-        profile?.status_message ? (
+  async function handleSave(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    setIsSaving(true);
+    setError(null);
+
+    const supabase = createClient();
+    const { error } = await supabase
+      .from("users")
+      .update({ status_message: draftMessage })
+      .eq("id", userId);
+
+    setIsSaving(false);
+
+    if (error) {
+      setError(error.message);
+      return;
+    }
+
+    onSaved(draftMessage);
+    setIsEditing(false);
+  }
+
+  if (!isEditing) {
+    return (
+      <div className="flex items-center gap-2">
+        {profile.status_message ? (
           <p>{profile.status_message}</p>
         ) : (
           <p>ステータスメッセージは設定されていません</p>
-        )
-      ) :
-        <input id="status-message" type="text" placeholder="編集中" />
-      }
-      <button onClick={() => EditHandleClick(setOnEdit, onEdit)}>{!onEdit ? "編集" : "保存"}</button>
-    </>
+        )}
+        <button type="button" onClick={handleEditStart}>
+          編集
+        </button>
+      </div>
+    );
+  }
+
+  return (
+    <form onSubmit={handleSave} className="flex items-center gap-2">
+      <input
+        type="text"
+        value={draftMessage}
+        onChange={(event) => setDraftMessage(event.target.value)}
+        placeholder="編集中"
+        disabled={isSaving}
+      />
+      <button type="submit" disabled={isSaving}>
+        {isSaving ? "保存中..." : "保存"}
+      </button>
+      {error && <p className="text-sm text-red-600">{error}</p>}
+    </form>
   );
 }
 
+export default function MyPage() {
+  const router = useRouter();
+  const [userId, setUserId] = useState<string | null>(null);
+  const [profile, setProfile] = useState<Profile | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-export default async function MyPage() {
-  const profile = await getProfile();
+  useEffect(() => {
+    async function loadProfile() {
+      const supabase = createClient();
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+
+      if (!user) {
+        router.push("/login");
+        return;
+      }
+
+      const { data, error } = await supabase
+        .from("users")
+        .select("name, following_count, follower_count, status_message")
+        .eq("id", user.id)
+        .single();
+
+      if (error) {
+        setError(error.message);
+        setIsLoading(false);
+        return;
+      }
+
+      setUserId(user.id);
+      setProfile({
+        name: data?.name ?? null,
+        following_count: data?.following_count ?? null,
+        follower_count: data?.follower_count ?? null,
+        status_message: data?.status_message ?? null,
+      });
+      setIsLoading(false);
+    }
+
+    loadProfile();
+  }, [router]);
+
+  if (isLoading) {
+    return (
+      <div className="flex flex-1 flex-col gap-4 p-6">
+        <p>読み込み中...</p>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="flex flex-1 flex-col gap-4 p-6">
+        <p className="text-sm text-red-600">{error}</p>
+      </div>
+    );
+  }
+
+  if (!profile || !userId) {
+    return null;
+  }
 
   return (
     <div className="flex flex-1 flex-col gap-4 p-6">
@@ -93,11 +175,17 @@ export default async function MyPage() {
           height={32}
           className="aspect-square rounded-full"
         />
-        {profile?.name && (
+        {profile.name && (
           <p className="text-lg font-semibold text-black">{profile.name}</p>
         )}
-        <StatusMessage />
-        {profile && <ProfileStats profile={profile} />}
+        <StatusMessage
+          profile={profile}
+          userId={userId}
+          onSaved={(statusMessage) =>
+            setProfile((prev) => (prev ? { ...prev, status_message: statusMessage } : prev))
+          }
+        />
+        <ProfileStats profile={profile} />
       </div>
 
       <SignOutButton />

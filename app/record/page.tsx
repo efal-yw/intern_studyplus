@@ -9,23 +9,26 @@ import { createClient } from "@/lib/supabase/server";
   };
 
 async function Record_by_category(textbook_category_id,supabase) {
-  const { textbooks_by_category, error }  = await supabase
+  const { data: textbooks_by_category, error }  = await supabase
     .from("textbook")
     .select("id, name, category")
     .eq("category", textbook_category_id);
   //retrieve textbooks by category
+  return textbooks_by_category;
 }
 
-async function RecordList(user, supabase) { 
-  const { textbook_categories, error }  = await supabase
+async function RecordList(user, supabase) {
+  const { data: textbook_categories, error }  = await supabase
     .from("category_textbook")
     .select("id, category_name")
-    .eq("user_id", user.id); 
+    .eq("user_id", user.id);
   // retrieve categories of textbooks
 
-  let category_and_textbooks: Array<[string | null, any]>= [];
-  textbook_categories.forEach(
-    (category) => category_and_textbooks.push([category.name, Record_by_category(category.id, supabase)])
+  const category_and_textbooks: Array<[string | null, any]> = await Promise.all(
+    textbook_categories.map(async (category) => [
+      category.category_name,
+      await Record_by_category(category.id, supabase),
+    ])
   );
 
   function ShowItems({ items }) {
@@ -43,16 +46,18 @@ async function RecordList(user, supabase) {
      </div>
     );
   }
-  
+
   return (
-    category_and_textbooks.forEach(
-      (items)=>ShowItems(items);
-    );
+    <>
+      {category_and_textbooks.map((items, index) => (
+        <ShowItems key={index} items={items} />
+      ))}
+    </>
   );
 }
 
 
-export default async function RecordPage(RecordList) {
+export default async function RecordPage() {
   const supabase = await createClient();
   const {
     data: { user },
@@ -64,7 +69,7 @@ export default async function RecordPage(RecordList) {
         <Link href="/ask">ask</Link>
         <Link href="/knowledge">knowledge</Link>
       </div>
-      {RecordList()}
+      {await RecordList(user, supabase)}
     </div>
   );
 }

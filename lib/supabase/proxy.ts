@@ -28,8 +28,14 @@ export async function updateSession(request: NextRequest) {
 
   // createServerClientとgetClaims()の間に他の処理を挟まないこと。
   // 挟むとユーザーが意図せずログアウトされるバグの原因になりうる。
-  const { data } = await supabase.auth.getClaims();
-  const user = data?.claims;
+  let user;
+  try {
+    const { data } = await supabase.auth.getClaims();
+    user = data?.claims;
+  } catch (err) {
+    const e = err as { message?: string; cause?: unknown };
+    console.error("getClaims failed:", e?.message, "cause:", e?.cause);
+  }
 
   const pathname = request.nextUrl.pathname;
   const isAuthRoute = pathname.startsWith("/auth/");

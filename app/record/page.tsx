@@ -14,7 +14,11 @@ async function Record_by_category(textbook_category_id,supabase) {
     .select("id, name, category")
     .eq("category", textbook_category_id);
   //retrieve textbooks by category
-  return textbooks_by_category;
+  if (error) {
+    console.error("Record_by_category error:", error.message);
+  }
+  console.log("category_id:", textbook_category_id, "textbooks_by_category:", textbooks_by_category);
+  return textbooks_by_category ?? [];
 }
 
 async function RecordList(user, supabase) {
@@ -23,9 +27,13 @@ async function RecordList(user, supabase) {
     .select("id, category_name")
     .eq("user_id", user.id);
   // retrieve categories of textbooks
+  if (error) {
+    console.error("RecordList category_textbook error:", error.message);
+  }
+  console.log("user.id:", user?.id, "textbook_categories:", textbook_categories);
 
   const category_and_textbooks: Array<[string | null, any]> = await Promise.all(
-    textbook_categories.map(async (category) => [
+    (textbook_categories ?? []).map(async (category) => [
       category.category_name,
       await Record_by_category(category.id, supabase),
     ])
@@ -59,9 +67,14 @@ async function RecordList(user, supabase) {
 
 export default async function RecordPage() {
   const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  let user = null;
+  try {
+    const result = await supabase.auth.getUser();
+    user = result.data.user;
+  } catch (err) {
+    const e = err as { message?: string; cause?: unknown };
+    console.error("getUser failed:", e?.message, "cause:", e?.cause);
+  }
 
   return (
     <div className="flex flex-1 flex-col items-start justify-start gap-6 p-6">

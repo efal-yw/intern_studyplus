@@ -46,9 +46,7 @@ async function RecordList(user, supabase) {
 
         <div className="grid grid-cols-4">
           {items[1].map((textbook) => (
-            <button key={textbook.id} type="button">
-              {textbook.name}
-             </button>
+            <Link key={textbook.id} href={`/record/${textbook.id}`} >{textbook.name}</Link>
           ))}
         </div>
      </div>

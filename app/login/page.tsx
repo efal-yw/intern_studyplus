@@ -42,6 +42,29 @@ function toJapaneseError(error: { code?: string; message: string }): string {
 const FIELD_CLASS =
   "h-11 w-full rounded border border-black/[.15] px-3 text-base text-black outline-none focus:border-black/40";
 
+function EyeIcon({ off }: { off: boolean }) {
+  return (
+    <svg
+      width="20" height="20" viewBox="0 0 24 24"
+      fill="none" stroke="currentColor" strokeWidth="1.5"
+      strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"
+    >
+      {off ? (
+        <>
+          <path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 10 8 10 8a18.5 18.5 0 0 1-2.16 3.19M6.61 6.61A18.15 18.15 0 0 0 2 12s3 8 10 8a9.7 9.7 0 0 0 5.39-1.61" />
+          <path d="M14.12 14.12a3 3 0 1 1-4.24-4.24" />
+          <line x1="2" y1="2" x2="22" y2="22" />
+        </>
+      ) : (
+        <>
+          <path d="M2 12s3-8 10-8 10 8 10 8-3 8-10 8-10-8-10-8Z" />
+          <circle cx="12" cy="12" r="3" />
+        </>
+      )}
+    </svg>
+  );
+}
+
 export default function LoginPage() {
   const router = useRouter();
   const [mode, setMode] = useState<Mode>("login");
@@ -172,7 +195,7 @@ export default function LoginPage() {
               autoComplete={
                 mode === "signup" ? "new-password" : "current-password"
                 }
-              className={`${FIELD_CLASS} pr-16`}
+              className={`${FIELD_CLASS} pr-11`}
             />
               <button
                 type="button"
@@ -180,9 +203,10 @@ export default function LoginPage() {
                 aria-label={
                   showPassword ? "パスワードを隠す" : "パスワードを表示する"
                 }
-                className="absolute right-0 top-0 h-11 px-3 text-xs text-zinc-500"
+                aria-pressed={showPassword}
+                className="absolute right-0 top-0 flex h-11 w-11 items-center justify-center text-zinc-500"
               >
-                {showPassword ? "隠す" : "表示"}
+                <EyeIcon off={showPassword} />
               </button>
           </div>
           {error && <p className="text-sm text-red-600">{error}</p>}

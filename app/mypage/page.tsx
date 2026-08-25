@@ -1,5 +1,5 @@
 import { redirect } from "next/navigation";
-import { createClient } from "@/lib/supabase/server"; // server 用クライアントを別途用意する
+import { createClient } from "@/lib/supabase/server";
 import SignOutButton from "../_components/SignOutButton";
 import { ProfileHeader, ProfileSections } from "./_components/ProfileSections";
 import type { FieldKey, Profile, Visibility } from "./_lib/profile-fields";
@@ -32,7 +32,7 @@ export default async function MyPage() {
   ]);
  
   if (error || !profile) {
-    return <p className="p-6 text-sm text-red-600">プロフィールを取得できなかった</p>;
+    return <p className="p-6 text-sm text-red-600">プロフィールを取得できませんでした</p>;
   }
  
   const visibilityMap = Object.fromEntries(

@@ -14,7 +14,7 @@ export const STATUS_DOT_CLASS: Record<InternshipStatus, string> = {
 };
  
 export const STATUS_LABEL: Record<InternshipStatus, string> = {
-  considering: "インターン検討中",
+  considering: "検討中",
   applying: "選考中",
   active: "参加中",
   finished: "終了",

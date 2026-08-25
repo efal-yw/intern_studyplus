@@ -1,193 +1,56 @@
-"use client";
-
-import { useEffect, useState, type FormEvent } from "react";
-import Image from "next/image";
-import { useRouter } from "next/navigation";
-import { createClient } from "@/lib/supabase/client";
+import { redirect } from "next/navigation";
+import { createClient } from "@/lib/supabase/server";
 import SignOutButton from "../_components/SignOutButton";
-
-type Profile = {
-  name: string | null;
-  following_count: number | null;
-  follower_count: number | null;
-  status_message: string | null;
-};
-
-function ProfileStats({ profile }: { profile: Profile }) {
-  return (
-    <div className="flex items-center gap-2">
-      <p>
-        <strong>{profile.following_count} </strong>フォロー中
-      </p>
-      <p>|</p>
-      <p>
-        <strong>{profile.follower_count} </strong>フォロワー
-      </p>
-    </div>
-  );
-}
-
-function StatusMessage({
-  profile,
-  userId,
-  onSaved,
-}: {
-  profile: Profile;
-  userId: string;
-  onSaved: (statusMessage: string) => void;
-}) {
-  const [isEditing, setIsEditing] = useState(false);
-  const [draftMessage, setDraftMessage] = useState(profile.status_message ?? "");
-  const [isSaving, setIsSaving] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-
-  function handleEditStart() {
-    setDraftMessage(profile.status_message ?? "");
-    setError(null);
-    setIsEditing(true);
-  }
-
-  async function handleSave(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    setIsSaving(true);
-    setError(null);
-
-    const supabase = createClient();
-    const { error } = await supabase
+import { ProfileHeader, ProfileSections } from "./_components/ProfileSections";
+import type { FieldKey, Profile, Visibility } from "./_lib/profile-fields";
+ 
+export default async function MyPage() {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+ 
+  if (!user) redirect("/login");
+ 
+  const [{ data: profile, error }, { data: visibilityRows }] = await Promise.all([
+    supabase
       .from("users")
-      .update({ status_message: draftMessage })
-      .eq("id", userId);
-
-    setIsSaving(false);
-
-    if (error) {
-      setError(error.message);
-      return;
-    }
-
-    onSaved(draftMessage);
-    setIsEditing(false);
-  }
-
-  if (!isEditing) {
+      .select(
+        `id, name, avatar_url, status_message,
+         following_count, follower_count,
+         internship_status, internship_started_on, record_count,
+         prefecture, high_school, tags,
+         grade:grades ( label ),
+         university:universities ( name, faculty )`,
+      )
+      .eq("id", user.id)
+      .single<Profile>(),
+    supabase
+      .from("profile_field_visibility")
+      .select("field_key, visibility")
+      .eq("user_id", user.id),
+  ]);
+ 
+  if (error || !profile) {
     return (
-      <div className="flex items-center gap-2">
-        {profile.status_message ? (
-          <p>{profile.status_message}</p>
-        ) : (
-          <p>ステータスメッセージは設定されていません</p>
-        )}
-        <button type="button" onClick={handleEditStart}>
-          編集
-        </button>
-      </div>
-    );
+      <pre className="p-6 text-xs text-red-600">
+        {JSON.stringify(error, null, 2)}
+      </pre>
+    );;
   }
-
+ 
+  const visibilityMap = Object.fromEntries(
+    (visibilityRows ?? []).map((row) => [row.field_key, row.visibility]),
+  ) as Partial<Record<FieldKey, Visibility>>;
+ 
+  const today = new Intl.DateTimeFormat("en-CA", {
+    timeZone: "Asia/Tokyo",
+  }).format(new Date());
+ 
   return (
-    <form onSubmit={handleSave} className="flex items-center gap-2">
-      <input
-        type="text"
-        value={draftMessage}
-        onChange={(event) => setDraftMessage(event.target.value)}
-        placeholder="編集中"
-        disabled={isSaving}
-      />
-      <button type="submit" disabled={isSaving}>
-        {isSaving ? "保存中..." : "保存"}
-      </button>
-      {error && <p className="text-sm text-red-600">{error}</p>}
-    </form>
-  );
-}
-
-export default function MyPage() {
-  const router = useRouter();
-  const [userId, setUserId] = useState<string | null>(null);
-  const [profile, setProfile] = useState<Profile | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-
-  useEffect(() => {
-    async function loadProfile() {
-      const supabase = createClient();
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
-
-      if (!user) {
-        router.push("/login");
-        return;
-      }
-
-      const { data, error } = await supabase
-        .from("users")
-        .select("name, following_count, follower_count, status_message")
-        .eq("id", user.id)
-        .single();
-
-      if (error) {
-        setError(error.message);
-        setIsLoading(false);
-        return;
-      }
-
-      setUserId(user.id);
-      setProfile({
-        name: data?.name ?? null,
-        following_count: data?.following_count ?? null,
-        follower_count: data?.follower_count ?? null,
-        status_message: data?.status_message ?? null,
-      });
-      setIsLoading(false);
-    }
-
-    loadProfile();
-  }, [router]);
-
-  if (isLoading) {
-    return (
-      <div className="flex flex-1 flex-col gap-4 p-6">
-        <p>読み込み中...</p>
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div className="flex flex-1 flex-col gap-4 p-6">
-        <p className="text-sm text-red-600">{error}</p>
-      </div>
-    );
-  }
-
-  if (!profile || !userId) {
-    return null;
-  }
-
-  return (
-    <div className="flex flex-1 flex-col gap-4 p-6">
-      <div className="flex flex-col items-start gap-4 justify-start">
-        <Image
-          src="/favicon.ico"
-          alt="favicon"
-          width={32}
-          height={32}
-          className="aspect-square rounded-full"
-        />
-        {profile.name && (
-          <p className="text-lg font-semibold text-black">{profile.name}</p>
-        )}
-        <StatusMessage
-          profile={profile}
-          userId={userId}
-          onSaved={(statusMessage) =>
-            setProfile((prev) => (prev ? { ...prev, status_message: statusMessage } : prev))
-          }
-        />
-        <ProfileStats profile={profile} />
-      </div>
-
+    <div className="flex flex-1 flex-col gap-4 bg-zinc-50 p-6">
+      <ProfileHeader profile={profile} today={today} />
+      <ProfileSections profile={profile} visibilityMap={visibilityMap} />
       <SignOutButton />
     </div>
   );

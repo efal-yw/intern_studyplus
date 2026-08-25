@@ -6,6 +6,65 @@ import { createClient } from "@/lib/supabase/client";
 
 type Mode = "login" | "signup";
 
+const AUTH_ERROR_MESSAGES: Record<string, string> = {
+  invalid_credentials: "メールアドレスまたはパスワードが違います。",
+  email_not_confirmed:
+    "メールアドレスの確認が済んでいません。届いたメールのリンクを開いてください。",
+  user_already_exists:
+    "このメールアドレスは登録済みです。",
+  email_exists: "このメールアドレスは登録済みです。",
+  weak_password: "パスワードは6文字以上にしてください。",
+  over_email_send_rate_limit:
+    "メールの送信上限に達しました。1分ほど待ってから再度お試しください。",
+  over_request_rate_limit:
+    "リクエストが多すぎます。しばらく待ってから再度お試しください",
+  validation_failed: "入力内容を確認してください。",
+};
+ 
+function toJapaneseError(error: { code?: string; message: string }): string {
+  if (error.code && AUTH_ERROR_MESSAGES[error.code]) {
+    return AUTH_ERROR_MESSAGES[error.code];
+  }
+  const m = error.message;
+  if (m.includes("Invalid login credentials"))
+    return AUTH_ERROR_MESSAGES.invalid_credentials;
+  if (m.includes("Email not confirmed"))
+    return AUTH_ERROR_MESSAGES.email_not_confirmed;
+  if (m.includes("already registered") || m.includes("already been registered"))
+    return AUTH_ERROR_MESSAGES.user_already_exists;
+  if (m.includes("Password should be"))
+    return AUTH_ERROR_MESSAGES.weak_password;
+  if (m.includes("rate limit"))
+    return AUTH_ERROR_MESSAGES.over_request_rate_limit;
+  return "うまく処理できませんでした。時間をおいて再度お試しください";
+}
+
+const FIELD_CLASS =
+  "h-11 w-full rounded border border-black/[.15] px-3 text-base text-black outline-none focus:border-black/40";
+
+function EyeIcon({ off }: { off: boolean }) {
+  return (
+    <svg
+      width="20" height="20" viewBox="0 0 24 24"
+      fill="none" stroke="currentColor" strokeWidth="1.5"
+      strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"
+    >
+      {off ? (
+        <>
+          <path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 10 8 10 8a18.5 18.5 0 0 1-2.16 3.19M6.61 6.61A18.15 18.15 0 0 0 2 12s3 8 10 8a9.7 9.7 0 0 0 5.39-1.61" />
+          <path d="M14.12 14.12a3 3 0 1 1-4.24-4.24" />
+          <line x1="2" y1="2" x2="22" y2="22" />
+        </>
+      ) : (
+        <>
+          <path d="M2 12s3-8 10-8 10 8 10 8-3 8-10 8-10-8-10-8Z" />
+          <circle cx="12" cy="12" r="3" />
+        </>
+      )}
+    </svg>
+  );
+}
+
 export default function LoginPage() {
   const router = useRouter();
   const [mode, setMode] = useState<Mode>("login");
@@ -15,6 +74,7 @@ export default function LoginPage() {
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [signupDone, setSignupDone] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -29,7 +89,7 @@ export default function LoginPage() {
         password,
       });
       if (error) {
-        setError(error.message);
+        setError(toJapaneseError(error)); 
         setIsLoading(false);
         return;
       }
@@ -48,7 +108,7 @@ export default function LoginPage() {
     });
 
     if (error) {
-      setError(error.message);
+      setError(toJapaneseError(error));
       setIsLoading(false);
       return;
     }
@@ -92,7 +152,9 @@ export default function LoginPage() {
                 required
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
-                className="rounded border border-black/[.15] px-3 py-2 text-black outline-none focus:border-black/40"
+                autoComplete="username" 
+                autoCapitalize="none"
+                className={FIELD_CLASS}
               />
             </div>
           )}
@@ -106,28 +168,52 @@ export default function LoginPage() {
               required
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="rounded border border-black/[.15] px-3 py-2 text-black outline-none focus:border-black/40"
+              autoComplete="email"
+              inputMode="email"
+              autoCapitalize="none"
+              autoCorrect="off"
+              spellCheck={false}
+              className={FIELD_CLASS}
             />
           </div>
           <div className="flex flex-col gap-1">
             <label htmlFor="password" className="text-sm text-zinc-600">
               パスワード
             </label>
+              {mode === "signup" && (
+              <span className="text-xs text-zinc-500">6文字以上</span>
+              )}
+            </div>
+            <div className="relative">
             <input
               id="password"
-              type="password"
+            　type={showPassword ? "text" : "password"}
               required
               minLength={6}
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="rounded border border-black/[.15] px-3 py-2 text-black outline-none focus:border-black/40"
+              autoComplete={
+                mode === "signup" ? "new-password" : "current-password"
+                }
+              className={`${FIELD_CLASS} pr-11`}
             />
+              <button
+                type="button"
+                onClick={() => setShowPassword((v) => !v)}
+                aria-label={
+                  showPassword ? "パスワードを隠す" : "パスワードを表示する"
+                }
+                aria-pressed={showPassword}
+                className="absolute right-0 top-0 flex h-11 w-11 items-center justify-center text-zinc-500"
+              >
+                <EyeIcon off={showPassword} />
+              </button>
           </div>
           {error && <p className="text-sm text-red-600">{error}</p>}
           <button
             type="submit"
             disabled={isLoading}
-            className="rounded bg-black px-4 py-2 text-sm font-semibold text-white disabled:opacity-50"
+            className="h-11 w-full rounded bg-black text-sm font-semibold text-white disabled:opacity-50"
           >
             {isLoading ? "処理中..." : mode === "login" ? "ログイン" : "登録する"}
           </button>
@@ -138,7 +224,7 @@ export default function LoginPage() {
             setMode(mode === "login" ? "signup" : "login");
             setError(null);
           }}
-          className="mt-4 w-full text-center text-sm text-zinc-500 underline underline-offset-4"
+          className="mt-4 h-11 w-full text-center text-sm text-zinc-500 underline underline-offset-4"
         >
           {mode === "login" ? "アカウントを作成する" : "ログイン画面に戻る"}
         </button>

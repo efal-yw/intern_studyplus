@@ -32,7 +32,11 @@ export default async function MyPage() {
   ]);
  
   if (error || !profile) {
-    return <p className="p-6 text-sm text-red-600">プロフィールを取得できませんでした</p>;
+    return (
+      <pre className="p-6 text-xs text-red-600">
+        {JSON.stringify(error, null, 2)}
+      </pre>
+    );;
   }
  
   const visibilityMap = Object.fromEntries(

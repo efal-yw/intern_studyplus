@@ -36,7 +36,6 @@ export default function AvatarUpload({
  
     setIsUploading(true);
     const supabase = createClient();
- る
     const ext = file.name.split(".").pop()?.toLowerCase() ?? "jpg";
     const path = `${userId}/avatar.${ext}`;
  

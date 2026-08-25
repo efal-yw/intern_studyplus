@@ -10,7 +10,7 @@ import {
   type FieldKey,
   type Profile,
   type Visibility,
-} from "./profile-fields";
+} from "../_lib/profile-fields";
  
 type VisibilityMap = Partial<Record<FieldKey, Visibility>>;
  

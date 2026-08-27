@@ -20,7 +20,22 @@ async function Record_by_category(textbook_category_id,supabase) {
   console.log("category_id:", textbook_category_id, "textbooks_by_category:", textbooks_by_category);
   return textbooks_by_category ?? [];
 }
-
+async function AddCategory(){
+  const [onEdit, setonEdit] = useState(false);
+  const [text, setText] = useState("")
+  async function handleClick(){
+    setonEdit(!onEdit)
+    if (!onEdit){
+      const supabase = await supabase
+      setText("");
+    };
+  }
+  if (onEdit){return(
+    <input value={text} onChange={(e)=>setText(e.target.value)}>
+    <button onClick={()=>handleClick}>保存</button>
+  )}else{return(
+  )};
+}
 async function RecordList(user, supabase) {
   const { data: textbook_categories, error }  = await supabase
     .from("category_textbook")

@@ -2,6 +2,7 @@ import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import AddCategory from "./AddCategory"
 import AddTextbook from "./AddTextbook"
+import { EditModeProvider, EditToggleButton, EditModeVisible } from "./EditMode"
 
 
 type Textbook = {
@@ -42,7 +43,9 @@ async function RecordList(user, supabase) {
      <div className="flex flex-col items-start justify-start gap-3">
       <div className="flex w-full items-center justify-between">
        <label>{items[0]}</label>
-       <AddTextbook user={user} category={items[1]} />
+       <EditModeVisible>
+         <AddTextbook user={user} category={items[1]} />
+       </EditModeVisible>
        </div>
 
         <div className="grid grid-cols-4">
@@ -79,13 +82,20 @@ export default async function RecordPage() {
   }
 
   return (
-    <div className="flex flex-1 flex-col justify-start gap-6 p-6">
-      <div className="flex flex-col gap-3">
-        <Link href="/ask">ask</Link>
-        <Link href="/knowledge">knowledge</Link>
+    <EditModeProvider>
+      <div className="flex flex-1 flex-col justify-start gap-6 p-6">
+        <div className="flex justify-end">
+          <EditToggleButton />
+        </div>
+        <div className="flex flex-col gap-3">
+          <Link href="/ask">ask</Link>
+          <Link href="/knowledge">knowledge</Link>
+        </div>
+        {await RecordList(user, supabase)}
+        <EditModeVisible>
+          <AddCategory user={user} />
+        </EditModeVisible>
       </div>
-      {await RecordList(user, supabase)}
-      <AddCategory user={user} />
-    </div>
+    </EditModeProvider>
   );
 }

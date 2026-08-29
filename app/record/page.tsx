@@ -1,6 +1,7 @@
 
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
+import { useState } from "react";
 
   type Textbook = {
    id: number;               
@@ -20,23 +21,43 @@ async function Record_by_category(textbook_category_id,supabase) {
   console.log("category_id:", textbook_category_id, "textbooks_by_category:", textbooks_by_category);
   return textbooks_by_category ?? [];
 }
-async function AddCategory(){
-  const [onEdit, setonEdit] = useState(false);
-  const [text, setText] = useState("")
-  async function handleClick(){
-    setonEdit(!onEdit)
-    if (!onEdit){
-      const supabase = await supabase
-      setText("");
-    };
-  }
-  if (onEdit){return(
-    <input value={text} onChange={(e)=>setText(e.target.value)}>
-    <button onClick={()=>handleClick}>保存</button>
-  )}else{return(
-  )};
+
+async function AddCategory(user, supabase) {
+  const [isOpen, setIsOpen] = useState(null);
+  const [inputText, setInputText] = useState("");
+
+  const handleSubmit= (e) => {
+    e.preventDefault;
+    setIsOpen(false)
+
+    const {data, error} = await supabase
+      .from("category_textbook")
+      .insert({user_id: user.id, category_name:inputText})
+  };
+
+  return (
+    <>
+    <button onClick={()=>setIsOpen(true)}>カテゴリーを追加</button>
+    {isOpen && (
+      <div className="fixed inset-0 z-50 bg-black bg-opacity-50" onClick={()=>setIsOpen(false)}>
+      <div className="justify-center items-center gap-4">
+      <form onSubmit={handleSubmit}>
+        <label>カテゴリーを追加</label>
+        <input type="text" 
+        value={inputText}
+        onChange={(e)=>setInputText(e.target.value)}
+        required>
+        </input>
+        <button type="button" onClick={()=>setIsOpen(false)}>戻る</button>
+        <button type="submit">保存</button>
+      </form>
+      </div>
+      </div>
+    </>)}
+  );
 }
-async function RecordList(user, supabase) {
+
+async function RecordList(user, supabase) {  
   const { data: textbook_categories, error }  = await supabase
     .from("category_textbook")
     .select("id, category_name")

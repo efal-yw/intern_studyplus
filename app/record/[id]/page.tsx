@@ -1,5 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import Link from "next/link";
+import { redirect } from "next/navigation";
 import { notFound } from "next/navigation"; // 404ページを出すための機能
 import DateTimeInput from "./datetime";
 import StudyTimeLength from "./studyTimeLength";
@@ -39,13 +40,50 @@ export default async function TextbookDetailPage({
 
   //　上まではAIにかいてもらったにょ。
 
-  async function postRecord(){
+  const userId = textbook.user_id;
 
-  };
+  async function handleSubmit(formData: FormData) {
+    "use server";
 
-  async function handleSubmit(){
-    await postRecord();
-  };
+    const supabase = await createClient();
+
+    const raw = Object.fromEntries(formData);
+    const date = raw.date as string;
+    const time = raw.time as string;
+    const hours = raw.hours as string | undefined;
+    const minutes = raw.minutes as string | undefined;
+
+    const record_post = {
+      user_id: userId,
+      type: "record",
+      note: raw.studyComment,
+      visibility: raw.visibility,
+      created_at: new Date(`${date}T${time}`).toISOString(),
+    };
+
+    const { data: post, error3 } = await supabase
+      .from("posts")
+      .insert(record_post)
+      .select("post_id")
+      .single();
+
+    
+
+    const record_record = {
+      post_id: post.post_id,
+      hours: hours ? parseInt(hours) : 0,
+      minutes: minutes ? parseInt(minutes) : 0,
+      textbook: textbookId
+    };
+
+    console.log(record_record);
+
+    const { error: error2 } = await supabase
+      .from("post_record")
+      .insert(record_record);
+
+    redirect("/record");
+  }
 
   return (
     <form action={handleSubmit}>

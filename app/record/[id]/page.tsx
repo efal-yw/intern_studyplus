@@ -1,6 +1,10 @@
 import { createClient } from "@/lib/supabase/server";
 import Link from "next/link";
 import { notFound } from "next/navigation"; // 404ページを出すための機能
+import DateTimeInput from "./datetime";
+import StudyTimeLength from "./studyTimeLength";
+import StudyComment from "./studyComment";
+import Visibility from "./visibility";
 
 // 型定義（一覧ページと同じもの）
 type Textbook = {
@@ -37,23 +41,23 @@ export default async function TextbookDetailPage({
 
   return (
     <>
-    <div className="flex items-start gap-3 p-3">
+    <div className="flex items-center gap-3 p-3">
     <Link href="/record">戻る</Link>
     <h1 className="grow text-center">記録の入力</h1>
     <button>記録</button>
     </div>
 
-    <div className="flex flex-col gap-4 p-6">
-      <h1 className="text-2xl font-bold text-zinc-800">
+    <div className="flex flex-col justify-stretch gap-4 p-6">
+      <div className="flex items-center justify-stretch">
+      <label>タイトル</label>
+      <p className="text-2xl font-bold text-zinc-800">
         {textbook.name}
-      </h1>
-      
-      <p className="text-zinc-500">
-        これは ID: {textbook.id} の教材の専用ページです。
       </p>
-
-      {/* ここに教材の中身や設定画面などを自由に作っていく */}
-
+      </div>
+      <Visibility />
+      <DateTimeInput />
+      <StudyTimeLength />
+      <StudyComment />
     </div>
 
     </>

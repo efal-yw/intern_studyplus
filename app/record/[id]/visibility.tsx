@@ -14,7 +14,7 @@ export default function Visibility() {
   const [visibility, setVisibility] = useState<Visibility>("public");
 
   return (
-    <div className="flex items-center gap-1">
+    <div className="flex items-center justify-evenly gap-1">
       {OPTIONS.map((option) => (
         <button
           key={option.value}

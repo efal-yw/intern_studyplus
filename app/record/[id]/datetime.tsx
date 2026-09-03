@@ -16,10 +16,10 @@ export default function DateTimeInput() {
 
   return (
     <div className="flex items-center gap-4">
-      <div className="flex items-center gap-2">
-        <label htmlFor="date" aria-label="日時">
-          <Calendar className="size-5 text-zinc-500" />
-        </label>
+      <label htmlFor="date" aria-label="日時" className="shrink-0">
+        <Calendar className="size-5 text-zinc-500" />
+      </label>
+      <div className="flex flex-1 items-center justify-evenly gap-4">
         <input
           type="date"
           id="date"
@@ -29,8 +29,6 @@ export default function DateTimeInput() {
             setDateTime((prev) => ({ ...prev, date: e.target.value }))
           }
         />
-      </div>
-      <div className="flex items-center gap-2">
         <input
           type="time"
           id="time"
@@ -41,6 +39,13 @@ export default function DateTimeInput() {
           }
         />
       </div>
+      <button
+        type="button"
+        onClick={() => setDateTime(formatDateTime(new Date()))}
+        className="shrink-0 text-sm text-blue-500"
+      >
+        現在時刻
+      </button>
     </div>
   );
 }

@@ -8,7 +8,7 @@ export default function StudyComment() {
 
   return (
     <div className="flex items-start gap-2">
-      <label htmlFor="studyComment" aria-label="コメント">
+      <label htmlFor="studyComment" aria-label="コメント" className="shrink-0">
         <AlignLeft className="size-5 text-zinc-500" />
       </label>
       <textarea
@@ -17,6 +17,7 @@ export default function StudyComment() {
         placeholder="コメント"
         value={studyComment}
         onChange={(e) => setStudyComment(e.target.value)}
+        className={`flex-1 ${studyComment ? "text-left" : "text-center"}`}
       />
     </div>
   );

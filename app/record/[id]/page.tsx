@@ -39,17 +39,24 @@ export default async function TextbookDetailPage({
 
   //　上まではAIにかいてもらったにょ。
 
+  async function postRecord(){
+
+  };
+
+  async function handleSubmit(){
+    await postRecord();
+  };
+
   return (
-    <>
+    <form action={handleSubmit}>
     <div className="flex items-center gap-3 p-3">
     <Link href="/record">戻る</Link>
     <h1 className="grow text-center">記録の入力</h1>
-    <button>記録</button>
+    <input type="submit" value="記録" />
     </div>
 
     <div className="flex flex-col justify-stretch gap-4 p-6">
-      <div className="flex items-center justify-stretch">
-      <label>タイトル</label>
+      <div className="flex items-center justify-center gap-2">
       <p className="text-2xl font-bold text-zinc-800">
         {textbook.name}
       </p>
@@ -60,6 +67,6 @@ export default async function TextbookDetailPage({
       <StudyComment />
     </div>
 
-    </>
+    </form>
   );
 }

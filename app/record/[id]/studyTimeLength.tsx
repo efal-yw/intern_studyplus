@@ -34,54 +34,58 @@ export default function StudyTimeLength() {
         onClick={() => setIsEditing(true)}
         className="flex items-center gap-2"
       >
-        <History className="size-5 text-zinc-500" />
-        <span>{hasValue ? `${hours}時間${minutes}分` : "学習時間を追加"}</span>
+        <History className="size-5 shrink-0 text-zinc-500" />
+        <span className="flex-1 text-center">
+          {hasValue ? `${hours}時間${minutes}分` : "学習時間を追加"}
+        </span>
       </button>
     );
   }
 
   return (
     <div className="flex items-center gap-2">
-      <History className="size-5 text-zinc-500" />
-      <select
-        name="hours"
-        value={hours}
-        onChange={(e) => {
-          setHours(Number(e.target.value));
-          setHasValue(true);
-        }}
-      >
-        {HOURS.map((h) => (
-          <option key={h} value={h}>
-            {h}時間
-          </option>
-        ))}
-      </select>
-      <select
-        name="minutes"
-        value={minutes}
-        onChange={(e) => {
-          setMinutes(Number(e.target.value));
-          setHasValue(true);
-        }}
-      >
-        {minuteOptions.map((m) => (
-          <option key={m} value={m}>
-            {m}分
-          </option>
-        ))}
-      </select>
-      <button
-        type="button"
-        onClick={toggleMinuteStep}
-        className="text-sm text-zinc-500"
-      >
-        {minuteStep}分刻み
-      </button>
+      <History className="size-5 shrink-0 text-zinc-500" />
+      <div className="flex flex-1 items-center justify-evenly gap-2">
+        <select
+          name="hours"
+          value={hours}
+          onChange={(e) => {
+            setHours(Number(e.target.value));
+            setHasValue(true);
+          }}
+        >
+          {HOURS.map((h) => (
+            <option key={h} value={h}>
+              {h}時間
+            </option>
+          ))}
+        </select>
+        <select
+          name="minutes"
+          value={minutes}
+          onChange={(e) => {
+            setMinutes(Number(e.target.value));
+            setHasValue(true);
+          }}
+        >
+          {minuteOptions.map((m) => (
+            <option key={m} value={m}>
+              {m}分
+            </option>
+          ))}
+        </select>
+        <button
+          type="button"
+          onClick={toggleMinuteStep}
+          className="text-sm text-zinc-500"
+        >
+          {minuteStep}分刻み
+        </button>
+      </div>
       <button
         type="button"
         onClick={() => setIsEditing(false)}
-        className="text-sm text-zinc-500"
+        className="shrink-0 text-sm text-zinc-500"
       >
         完了
       </button>

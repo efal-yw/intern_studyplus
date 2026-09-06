@@ -88,8 +88,8 @@ export default async function RecordPage() {
           <EditToggleButton />
         </div>
         <div className="flex flex-col gap-3">
-          <Link href="/ask">ask</Link>
-          <Link href="/knowledge">knowledge</Link>
+          <Link href="/record/ask">ask</Link>
+          <Link href="/record/knowledge">knowledge</Link>
         </div>
         {await RecordList(user, supabase)}
         <EditModeVisible>

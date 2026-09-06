@@ -2,10 +2,10 @@ import { createClient } from "@/lib/supabase/server";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { notFound } from "next/navigation"; // 404ページを出すための機能
-import DateTimeInput from "./datetime";
+import DateTimeInput from "../datetime";
 import StudyTimeLength from "./studyTimeLength";
-import StudyComment from "./studyComment";
-import Visibility from "./visibility";
+import Comment from "../Comment";
+import Visibility from "../visibility";
 
 // 型定義（一覧ページと同じもの）
 type Textbook = {
@@ -56,7 +56,7 @@ export default async function TextbookDetailPage({
     const record_post = {
       user_id: userId,
       type: "record",
-      note: raw.studyComment,
+      note: raw.comment,
       visibility: raw.visibility,
       created_at: new Date(`${date}T${time}`).toISOString(),
     };
@@ -99,7 +99,7 @@ export default async function TextbookDetailPage({
       <Visibility />
       <DateTimeInput />
       <StudyTimeLength />
-      <StudyComment />
+      <Comment />
     </div>
 
     </form>

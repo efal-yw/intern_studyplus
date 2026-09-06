@@ -6,7 +6,12 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "typecheck": "tsc --noEmit -p tsconfig.typecheck.json",
+    "db:types": "npx supabase@latest gen types typescript --project-id vssumrutrexcmlyvigqg --schema public > lib/database.types.ts",
+    "db:pull": "npx supabase@latest db pull",
+    "db:new": "npx supabase@latest migration new",
+    "db:push": "npx supabase@latest db push"
   },
   "dependencies": {
     "@supabase/ssr": "^0.12.4",

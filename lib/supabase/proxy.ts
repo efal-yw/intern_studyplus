@@ -1,11 +1,12 @@
 import { createServerClient } from "@supabase/ssr";
+import type { Database } from "@/lib/database.types";
 import { NextResponse, type NextRequest } from "next/server";
 
 export async function updateSession(request: NextRequest) {
   let supabaseResponse = NextResponse.next({ request });
 
   // Fluid compute向け: グローバル変数に置かず、リクエストごとに毎回生成する
-  const supabase = createServerClient(
+  const supabase = createServerClient<Database>(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!,
     {

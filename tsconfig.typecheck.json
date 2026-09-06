@@ -1,0 +1,14 @@
+{
+  // 型チェック専用の設定。
+  //
+  // なぜ tsconfig.json をそのまま使わないか:
+  // Next.js が生成する .next/dev/types/validator.ts が壊れることがあり
+  // (import パスの文字列が閉じていない等)、TypeScript は「構文エラーが1つでもあると
+  // 意味解析(=型チェック)を打ち切る」仕様のため、アプリ本体の型エラーが
+  // まるごと隠れてしまう。開発サーバーの生成物である .next/dev を対象から外して、
+  // 常に自分たちのコードだけを確実に型チェックする。
+  //
+  // 使い方: npm run typecheck
+  "extends": "./tsconfig.json",
+  "exclude": ["node_modules", ".next/dev"]
+}

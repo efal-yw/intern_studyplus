@@ -1,0 +1,4 @@
+# supabase init が作る設定ファイル。
+# ここはローカル開発スタック (supabase start) 用の設定で、
+# リモートのプロジェクト設定には一切反映されない。
+project_id = "intern_studyplus"

@@ -1,44 +1,54 @@
 import Link from "next/link";
+import { redirect } from "next/navigation";
+import type { User } from "@supabase/supabase-js";
 import { createClient } from "@/lib/supabase/server";
+import type { Tables } from "@/lib/database.types";
 import AddCategory from "./AddCategory"
 import AddTextbook from "./AddTextbook"
 import { EditModeProvider, EditToggleButton, EditModeVisible } from "./EditMode"
 
 
-type Textbook = {
-  id: number;               
-  name: string | null;    
-  category: string | null; 
-};
+type SupabaseServerClient = Awaited<ReturnType<typeof createClient>>;
 
-async function Record_by_category(textbook_category_id,supabase) {
-  const { data: textbooks_by_category, error }  = await supabase
+// 実スキーマから引く。id は uuid なので number ではなく string
+type Textbook = Pick<Tables<"textbook">, "id" | "name" | "category">;
+
+// [カテゴリー名, カテゴリーID, そのカテゴリーの教材一覧]
+type CategoryWithTextbooks = [string | null, string, Textbook[]];
+
+async function Record_by_category(
+  textbook_category_id: string,
+  supabase: SupabaseServerClient,
+): Promise<Textbook[]> {
+  const { data: textbooks_by_category }  = await supabase
     .from("textbook")
     .select("id, name, category")
     .eq("category", textbook_category_id);
   //retrieve textbooks by category
-  
+
   return textbooks_by_category ?? [];
 }
 
 
-async function RecordList(user, supabase) {  
-  const { data: textbook_categories, error }  = await supabase
+async function RecordList(user: User, supabase: SupabaseServerClient) {
+  const { data: textbook_categories }  = await supabase
     .from("category_textbook")
     .select("id, category_name")
     .eq("user_id", user.id);
   // retrieve categories of textbooks
 
 
-  const category_and_textbooks: Array<[string | null, number, any]> = await Promise.all(
-    (textbook_categories ?? []).map(async (category) => [
-      category.category_name,
-      category.id,
-      await Record_by_category(category.id, supabase),
-    ])
+  const category_and_textbooks: CategoryWithTextbooks[] = await Promise.all(
+    (textbook_categories ?? []).map(
+      async (category): Promise<CategoryWithTextbooks> => [
+        category.category_name,
+        category.id,
+        await Record_by_category(category.id, supabase),
+      ]
+    )
   );
 
-  function ShowItems({ items }) {
+  function ShowItems({ items }: { items: CategoryWithTextbooks }) {
     return (
      <div className="flex flex-col items-start justify-start gap-3">
       <div className="flex w-full items-center justify-between">
@@ -79,6 +89,12 @@ export default async function RecordPage() {
   } catch (err) {
     const e = err as { message?: string; cause?: unknown };
     console.error("getUser failed:", e?.message, "cause:", e?.cause);
+  }
+
+  // 未ログインなら proxy 側でもリダイレクトされるが、ここでも必ず止める。
+  // (getUser が失敗して user が null のまま user.id を読むとクラッシュするため)
+  if (!user) {
+    redirect("/login");
   }
 
   return (

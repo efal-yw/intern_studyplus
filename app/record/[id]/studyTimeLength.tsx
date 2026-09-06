@@ -27,27 +27,47 @@ export default function StudyTimeLength() {
     setMinutes((prev) => Math.round(prev / nextStep) * nextStep);
   };
 
+  // フォームに送る値は <select> ではなく、この hidden input だけが持つ。
+  //
+  // <select> に name を付けると、「完了」を押して編集UIを閉じた瞬間に
+  // <select> が DOM から消え、FormData に hours/minutes が入らなくなる
+  // (= 入力した学習時間が黙って捨てられる)。
+  // hidden input を状態と対応させておけば、開いていても閉じていても必ず送られる。
+  //
+  // 一度も入力していないときは hidden input 自体を出さない。
+  // そうすることでサーバー側が「未入力(null)」と「0時間0分」を区別できる。
+  const hiddenFields = hasValue ? (
+    <>
+      <input type="hidden" name="hours" value={hours} />
+      <input type="hidden" name="minutes" value={minutes} />
+    </>
+  ) : null;
+
   if (!isEditing) {
     return (
-      <button
-        type="button"
-        onClick={() => setIsEditing(true)}
-        className="flex items-center gap-2"
-      >
-        <History className="size-5 shrink-0 text-zinc-500" />
-        <span className="flex-1 text-center">
-          {hasValue ? `${hours}時間${minutes}分` : "学習時間を追加"}
-        </span>
-      </button>
+      <>
+        {hiddenFields}
+        <button
+          type="button"
+          onClick={() => setIsEditing(true)}
+          className="flex items-center gap-2"
+        >
+          <History className="size-5 shrink-0 text-zinc-500" />
+          <span className="flex-1 text-center">
+            {hasValue ? `${hours}時間${minutes}分` : "学習時間を追加"}
+          </span>
+        </button>
+      </>
     );
   }
 
   return (
     <div className="flex items-center gap-2">
+      {hiddenFields}
       <History className="size-5 shrink-0 text-zinc-500" />
       <div className="flex flex-1 items-center justify-evenly gap-2">
         <select
-          name="hours"
+          aria-label="時間"
           value={hours}
           onChange={(e) => {
             setHours(Number(e.target.value));
@@ -61,7 +81,7 @@ export default function StudyTimeLength() {
           ))}
         </select>
         <select
-          name="minutes"
+          aria-label="分"
           value={minutes}
           onChange={(e) => {
             setMinutes(Number(e.target.value));

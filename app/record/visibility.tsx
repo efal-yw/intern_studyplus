@@ -1,21 +1,14 @@
 "use client";
 
 import { useState } from "react";
+import { VISIBILITY_OPTIONS, type Visibility } from "@/lib/post-form";
 
-const OPTIONS = [
-  { value: "private", label: "非公開" },
-  { value: "followers", label: "フォロワー" },
-  { value: "public", label: "全体" },
-] as const;
-
-type Visibility = (typeof OPTIONS)[number]["value"];
-
-export default function Visibility() {
+export default function VisibilityInput() {
   const [visibility, setVisibility] = useState<Visibility>("public");
 
   return (
     <div className="flex items-center justify-evenly gap-1">
-      {OPTIONS.map((option) => (
+      {VISIBILITY_OPTIONS.map((option) => (
         <button
           key={option.value}
           type="button"

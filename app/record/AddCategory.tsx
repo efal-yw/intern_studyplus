@@ -1,19 +1,20 @@
 "use client"
-import {useState} from "react"
+import { useState, type FormEvent } from "react"
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
+import type { User } from "@supabase/supabase-js";
 
-export default function AddCategory({user}) {
+export default function AddCategory({ user }: { user: User }) {
   const [isOpen, setIsOpen] = useState(false);
   const [inputText, setInputText] = useState("");
 
   const router = useRouter();
   const supabase = createClient();
-  const handleSubmit = async (e) => {
+  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setIsOpen(false)
 
-    const {data, error} = await supabase
+    const { error } = await supabase
       .from("category_textbook")
       .insert({user_id: user.id, category_name:inputText});
 
@@ -29,7 +30,7 @@ export default function AddCategory({user}) {
     <>
     <button onClick={()=>setIsOpen(true)}>カテゴリーを追加</button>
     {isOpen && (
-      <div className="fixed inset-0 z-50 bg-black bg-opacity-50 flex justify-center items-center" onClick={()=>setIsOpen(false)}>
+      <div className="fixed inset-0 z-50 bg-black/50 flex justify-center items-center" onClick={()=>setIsOpen(false)}>
       <div onClick={(e) => e.stopPropagation()}>
       <form onSubmit={handleSubmit} className="flex flex-col justify-center items-center gap-4 bg-white">
         <label htmlFor="category-name">カテゴリーを追加</label>

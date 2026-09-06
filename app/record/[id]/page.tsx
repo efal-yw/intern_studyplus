@@ -2,17 +2,13 @@ import { createClient } from "@/lib/supabase/server";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { notFound } from "next/navigation"; // 404ページを出すための機能
+import { jstInputToUtcISO } from "@/lib/datetime";
+import { getText, parseVisibility, toNullableInt } from "@/lib/post-form";
+import type { TablesInsert } from "@/lib/database.types";
 import DateTimeInput from "../datetime";
 import StudyTimeLength from "./studyTimeLength";
 import Comment from "../Comment";
 import Visibility from "../visibility";
-
-// 型定義（一覧ページと同じもの）
-type Textbook = {
-  id: number;
-  user_id: string;
-  name: string;
-};
 
 // params という特殊な箱から、URLの [id] の部分を受け取る
 export default async function TextbookDetailPage({
@@ -40,6 +36,8 @@ export default async function TextbookDetailPage({
 
   //　上まではAIにかいてもらったにょ。
 
+  // TODO(A-3): ここは「教材の持ち主」であってログインユーザーではない。
+  // RLS が効いていないと、URL の id を変えるだけで他人名義の投稿ができてしまう。
   const userId = textbook.user_id;
 
   async function handleSubmit(formData: FormData) {
@@ -50,34 +48,51 @@ export default async function TextbookDetailPage({
     const raw = Object.fromEntries(formData);
     const date = raw.date as string;
     const time = raw.time as string;
-    const hours = raw.hours as string | undefined;
-    const minutes = raw.minutes as string | undefined;
 
-    const record_post = {
+    // 入力された日時は JST として解釈して UTC に直す。
+    // new Date(`${date}T${time}`) と書くとサーバーのローカルTZ解釈になり、
+    // 開発機(JST)では動いて Vercel(UTC)では9時間ずれる。
+    // TODO(D-3): 日時が空/不正なときは弾く (機能定義書 F-03 の例外条件)
+    const studiedAtISO =
+      jstInputToUtcISO(date, time) ?? new Date().toISOString();
+
+    const record_post: TablesInsert<"posts"> = {
       user_id: userId,
       type: "record",
-      note: raw.comment,
-      visibility: raw.visibility,
-      created_at: new Date(`${date}T${time}`).toISOString(),
+      note: getText(raw.comment),
+      visibility: parseVisibility(raw.visibility),
+      created_at: studiedAtISO,
     };
 
-    const { data: post, error: error3 } = await supabase
+    const { data: post, error: postError } = await supabase
       .from("posts")
       .insert(record_post)
       .select("post_id")
       .single();
 
+    if (postError || !post) {
+      console.error("posts insert failed:", postError);
+      throw new Error(`posts insert failed: ${postError?.message}`);
+    }
 
-    const record_record = {
+    const record_record: TablesInsert<"post_record"> = {
       post_id: post.post_id,
-      hours: hours ? parseInt(hours) : 0,
-      minutes: minutes ? parseInt(minutes) : 0,
-      textbook: textbookId
+      hours: toNullableInt(raw.hours),
+      minutes: toNullableInt(raw.minutes),
+      textbook: textbookId,
     };
 
-    const { error: error2 } = await supabase
+    const { error: recordError } = await supabase
       .from("post_record")
       .insert(record_record);
+
+    if (recordError) {
+      // 子テーブルの insert に失敗すると posts だけが残る (孤児レコード)。
+      // 本来は1トランザクションにまとめるべきで、これはそれまでの応急処置。
+      console.error("post_record insert failed:", recordError);
+      await supabase.from("posts").delete().eq("post_id", post.post_id);
+      throw new Error(`post_record insert failed: ${recordError.message}`);
+    }
 
     redirect("/record");
   }

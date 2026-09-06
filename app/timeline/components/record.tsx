@@ -27,20 +27,26 @@ export default async function RecordPost({ post_info }: { post_info: Post }) {
     }
 
     const record = { ...post_info, ...postRecord };
-    const textbook = await supabase
-        .from("textbook")
-        .select("name")
-        .eq("id", record.textbook)
-        .single();
+    const { data: textbook, error: textbookError } = record.textbook
+        ? await supabase
+              .from("textbook")
+              .select("name")
+              .eq("id", record.textbook)
+              .single()
+        : { data: null, error: null };
+
+    if (textbookError) {
+        console.error("textbook fetch failed:", textbookError);
+    }
 
     return (
-        <>
-            <div>
+        <div>
+            <div className="flex items-center gap-2">
                 <p>{author?.name}</p>
                 <time>{record.created_at}</time>
             </div>
             <div>
-                <div>{textbook.name}</div>
+                <div>{textbook?.name}</div>
                 {record.hours && record.minutes ? (
                     <p>
                         {record.hours}時間{record.minutes}分
@@ -48,6 +54,6 @@ export default async function RecordPost({ post_info }: { post_info: Post }) {
                 ) : null}
             </div>
             {record.note && <p>{record.note}</p>}
-        </>
+        </div>
     );
 };

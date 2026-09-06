@@ -1,7 +1,18 @@
-export default function TimelinePage() {
-  return (
-    <div className="flex flex-1 items-center justify-center p-6">
-      <p className="text-zinc-500">タイムライン画面</p>
-    </div>
-  );
+import { getPosts } from "./timeline/components/getPosts";
+import RecordPost from "./timeline/components/record";
+
+export default async function TimelinePage() {
+    const posts = await getPosts();
+
+    return (
+        <div className="flex flex-col gap-4">
+            {posts.map((post) => {
+                if (post.type === "record") {
+                    return <RecordPost key={post.post_id} post_info={post} />;
+                }
+
+                return null;
+            })}
+        </div>
+    );
 }

@@ -61,13 +61,12 @@ export default async function TextbookDetailPage({
       created_at: new Date(`${date}T${time}`).toISOString(),
     };
 
-    const { data: post, error3 } = await supabase
+    const { data: post, error: error3 } = await supabase
       .from("posts")
       .insert(record_post)
       .select("post_id")
       .single();
 
-    
 
     const record_record = {
       post_id: post.post_id,
@@ -75,8 +74,6 @@ export default async function TextbookDetailPage({
       minutes: minutes ? parseInt(minutes) : 0,
       textbook: textbookId
     };
-
-    console.log(record_record);
 
     const { error: error2 } = await supabase
       .from("post_record")

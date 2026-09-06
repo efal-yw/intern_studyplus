@@ -47,7 +47,7 @@ export default async function RecordPost({ post_info }: { post_info: Post }) {
             </div>
             <div>
                 <div>{textbook?.name}</div>
-                {record.hours && record.minutes ? (
+                {record.hours != null && record.minutes != null ? (
                     <p>
                         {record.hours}時間{record.minutes}分
                     </p>

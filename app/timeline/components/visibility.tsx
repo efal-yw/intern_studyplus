@@ -32,6 +32,7 @@ export default function VisibilityFilter({
                 key={option.value}
                 onClick={() => handleChange(option.value)}
                 disabled={isPending}
+                className={option.value === visibility ? "font-bold" : "text-gray-700"}
             >
                 {option.label}
             </button>

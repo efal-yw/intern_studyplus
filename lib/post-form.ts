@@ -46,3 +46,19 @@ export function toNullableInt(value: FormDataEntryValue | undefined): number | n
   const parsed = Number.parseInt(value, 10);
   return Number.isNaN(parsed) ? null : parsed;
 }
+
+/**
+ * コメント本文の最大文字数。
+ * UI の maxLength・サーバーアクションの検証・DB の CHECK 制約
+ * (comments_contents_length) の3箇所で同じ値を使う。
+ */
+export const COMMENT_MAX_LENGTH = 500;
+
+/**
+ * コメント本文の文字数。
+ * .length は UTF-16 の要素数なので絵文字などが2文字に数えられる。
+ * DB 側の char_length() と数え方を揃えるため、コードポイントで数える。
+ */
+export function countChars(text: string): number {
+  return [...text].length;
+}

@@ -2,6 +2,8 @@ import { createClient } from "@/lib/supabase/server";
 import type { Database } from "@/lib/database.types";
 import PostTime from "./postTime";
 import Like from "./like";
+import Comments from "./comment";
+import type { TimelineComment } from "./getComments";
 
 type Post = Database["public"]["Tables"]["posts"]["Row"];
 
@@ -9,10 +11,12 @@ export default async function KnowledgePost({
     post_info,
     likeCount,
     liked,
+    comments,
 }: {
     post_info: Post;
     likeCount: number;
     liked: boolean;
+    comments: TimelineComment[];
 }) {
     const supabase = await createClient();
 
@@ -49,6 +53,7 @@ export default async function KnowledgePost({
             </div>
             {record.note && <p>{record.note}</p>}
             <Like postId={post_info.post_id} count={likeCount} liked={liked} />
+            <Comments postId={post_info.post_id} comments={comments} />
         </div>
     );
 };

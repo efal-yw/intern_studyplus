@@ -45,6 +45,7 @@ export default function UserProfilePage(){
   const [profile, setProfile] = useState<Profile | null>(null);
   const [viewerId, setViewerId] = useState<string | null>(null);
   const [isFollowing, setIsFollowing] = useState(false);
+  const [followError, setFollowError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -105,9 +106,18 @@ export default function UserProfilePage(){
   // 先に表示を切り替えてからサーバーに送る。往復(200ms前後)を待つと
   // 「押しても反応しない」ように見えるため。
   // 完了後に取り直すのは、フォロワー数がDBのトリガー側で増減するから。
+  // 失敗したときは取り直しでボタンが勝手に戻るので、理由を出さないと
+  // 「押しても戻るだけ」にしか見えない。
   async function handleToggleFollow(nextFollowing: boolean) {
+    setFollowError(null);
     setIsFollowing(nextFollowing);
-    await toggleFollow(id, nextFollowing);
+
+    const { error } = await toggleFollow(id, nextFollowing);
+
+    if (error) {
+      setFollowError(error);
+    }
+
     setReloadToken((token) => token + 1);
   }
 
@@ -152,6 +162,9 @@ export default function UserProfilePage(){
           />
         )}
         </div>
+        {followError && (
+          <p className="text-sm text-red-600">{followError}</p>
+        )}
         {profile.name && (
           <p className="text-lg font-semibold text-black">{profile.name}</p>
         )}

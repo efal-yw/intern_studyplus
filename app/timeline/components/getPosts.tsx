@@ -1,21 +1,52 @@
 import { createClient } from "@/lib/supabase/server";
+import { getCurrentUser } from "@/lib/auth/current-user";
 import type { Database } from "@/lib/database.types";
 
 const PAGE_SIZE = 30;
 
 type PostType = Database["public"]["Enums"]["post_type"];
-type Visibility = Database["public"]["Enums"]["visibility_scope"];
+
+/** タイムラインの表示範囲。"all" は絞り込みなし */
+export type Scope = "all" | "following" | "mine";
 
 // pull方式(最初の1ページ分)で posts を created_at 降順に取得する
-// visibility を指定すると DB 側の絞り込み(WHERE)に使う
+// scope を指定すると DB 側の絞り込み(WHERE)に使う
 // postType を指定すると、取得した(最大30件の)結果の中から type が一致するものだけを返す
-export async function getPosts(postType?: PostType, visibility?: Visibility) {
+export async function getPosts(postType?: PostType, scope: Scope = "all") {
   const supabase = await createClient();
 
   let query = supabase.from("posts").select("*");
 
-  if (visibility) {
-    query = query.eq("visibility", visibility);
+  if (scope === "following" || scope === "mine") {
+    const user = await getCurrentUser();
+
+    // 未ログインなら「フォロー中」「自分」は絞り込みようがないので空で返す
+    if (!user) {
+      return [];
+    }
+
+    if (scope === "following") {
+      const { data: follows, error: followsError } = await supabase
+        .from("ff")
+        .select("to_user_id")
+        .eq("from_user_id", user.id);
+
+      if (followsError) {
+        console.error("follows fetch failed:", followsError);
+        throw new Error(`follows fetch failed: ${followsError.message}`);
+      }
+
+      const followingIds = (follows ?? []).map((f) => f.to_user_id);
+
+      // .in() に空配列を渡すと不正なクエリになるので、先に空で返す
+      if (followingIds.length === 0) {
+        return [];
+      }
+
+      query = query.in("user_id", followingIds);
+    } else {
+      query = query.eq("user_id", user.id);
+    }
   }
 
   const { data: posts, error } = await query

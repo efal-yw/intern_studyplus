@@ -8,17 +8,22 @@ import { getCurrentUser } from "@/lib/auth/current-user";
 // クライアントから受け取るのは「誰を」「どちらにしたいか」だけ。
 // フォローする側(from_user_id)はセッションから引き直す。
 // (サーバーアクションは UI を通さない POST でも叩けるので、クライアント由来の id は信用しない)
-export async function toggleFollow(targetUserId: string, nextFollowing: boolean) {
+// 失敗の理由は呼び出し側に返す。ここで握りつぶすと、画面はボタンが元に戻るだけで
+// 「なぜフォローできないのか」がサーバーのログにしか残らない。
+export async function toggleFollow(
+  targetUserId: string,
+  nextFollowing: boolean
+): Promise<{ error: string | null }> {
   const user = await getCurrentUser();
 
   if (!user) {
-    return;
+    return { error: "ログインが必要です" };
   }
 
   // 自分自身はフォローできない。DB 側にも ff_no_self_follow があるが、
   // 制約違反を出すより手前で止める。
   if (user.id === targetUserId) {
-    return;
+    return { error: "自分自身はフォローできません" };
   }
 
   const supabase = await createClient();
@@ -31,8 +36,8 @@ export async function toggleFollow(targetUserId: string, nextFollowing: boolean)
     // 23505 = unique_violation。連打などで既に行がある場合で、状態としては成功。
     // (DB 側に ff_from_to_unique = UNIQUE (from_user_id, to_user_id) がある)
     if (error && error.code !== "23505") {
-      console.error("follow insert failed:", error.message);
-      return;
+      console.error("follow insert failed:", error.code, error.message);
+      return { error: `${error.code}: ${error.message}` };
     }
   } else {
     const { error } = await supabase
@@ -42,10 +47,12 @@ export async function toggleFollow(targetUserId: string, nextFollowing: boolean)
       .eq("to_user_id", targetUserId);
 
     if (error) {
-      console.error("follow delete failed:", error.message);
-      return;
+      console.error("follow delete failed:", error.code, error.message);
+      return { error: `${error.code}: ${error.message}` };
     }
   }
 
   refresh();
+
+  return { error: null };
 }

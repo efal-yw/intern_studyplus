@@ -4,15 +4,15 @@ import { getComments } from "./timeline/components/getComments";
 import RecordPost from "./timeline/components/record";
 import KnowledgePost from "./timeline/components/knowledge";
 import AskPost from "./timeline/components/ask";
-import VisibilityFilter from "./timeline/components/visibility";
-import { VISIBILITY_OPTIONS, type Visibility } from "@/lib/post-form";
+import ScopeFilter from "./timeline/components/scope";
+import type { Scope } from "./timeline/components/getPosts";
 import { getCurrentUser } from "@/lib/auth/current-user";
 
-// 絞り込み用: 未指定・不正値は public にする。
-function parseVisibilityFilter(
-    value: string | string[] | undefined
-): Visibility {
-    return VISIBILITY_OPTIONS.find((o) => o.value === value)?.value ?? "public";
+const SCOPES: ReadonlyArray<Scope> = ["all", "following", "mine"];
+
+// 絞り込み用: 未指定・不正値は all にする。
+function parseScope(value: string | string[] | undefined): Scope {
+    return SCOPES.find((s) => s === value) ?? "all";
 }
 
 export default async function TimelinePage({
@@ -20,11 +20,11 @@ export default async function TimelinePage({
 }: {
     searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
 }) {
-    const visibility = parseVisibilityFilter((await searchParams).visibility);
+    const scope = parseScope((await searchParams).scope);
     // 投稿一覧とログインユーザーは互いに独立しているので並列で取る。
     const [user, posts] = await Promise.all([
         getCurrentUser(),
-        getPosts(undefined, visibility),
+        getPosts(undefined, scope),
     ]);
 
     // いいね・コメントは投稿ごとに引かず、それぞれ1クエリにまとめる。
@@ -37,7 +37,7 @@ export default async function TimelinePage({
 
     return (
         <>
-        <VisibilityFilter visibility={visibility} />
+        <ScopeFilter scope={scope} />
         <div className="flex flex-col gap-4">
             {posts.map((post) => {
                 const likeCount = counts.get(post.post_id) ?? 0;

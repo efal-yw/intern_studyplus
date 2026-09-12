@@ -1,10 +1,19 @@
 import { createClient } from "@/lib/supabase/server";
 import type { Database } from "@/lib/database.types";
 import PostTime from "./postTime";
+import Like from "./like";
 
 type Post = Database["public"]["Tables"]["posts"]["Row"];
 
-export default async function RecordPost({ post_info }: { post_info: Post }) {
+export default async function RecordPost({
+    post_info,
+    likeCount,
+    liked,
+}: {
+    post_info: Post;
+    likeCount: number;
+    liked: boolean;
+}) {
     const supabase = await createClient();
 
     const { data: author, error: authorError } = await supabase
@@ -55,6 +64,7 @@ export default async function RecordPost({ post_info }: { post_info: Post }) {
                 ) : null}
             </div>
             {record.note && <p>{record.note}</p>}
+            <Like postId={post_info.post_id} count={likeCount} liked={liked} />
         </div>
     );
 };

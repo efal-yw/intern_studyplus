@@ -3,8 +3,8 @@ import { getCurrentUser } from "@/lib/auth/current-user";
 
 // タイムラインに並ぶ投稿の「いいね数」と「自分が押したか」をまとめて1クエリで取る。
 // 投稿ごとに数えると 30件 x 2回 のクエリになるので、行を全部引いて JS 側で集計する。
-// 注意: likes の RLS が「自分の行だけ select 可」だと他人のいいねが見えず、
-//       counts が 0 か 1 にしかならない。認証済みユーザーは全行 select できる必要がある。
+// likes の RLS(select) は can_view_post(post_id) なので、投稿が見えていれば
+// その投稿のいいねは他人の分も数えられる。
 export async function getLikes(postIds: string[]) {
   const counts = new Map<string, number>();
   const likedByMe = new Set<string>();

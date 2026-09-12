@@ -23,8 +23,7 @@ export async function toggleLike(postId: string, nextLiked: boolean) {
       .insert({ post_id: postId, user_id: user.id });
 
     // 23505 = unique_violation。連打などで既に行がある場合で、状態としては成功。
-    // TODO: likes に (post_id, user_id) の unique 制約が無いとこの分岐は効かず、
-    //       重複行が入っていいね数が水増しされる。制約の有無を確認すること。
+    // (DB 側に likes_unique = UNIQUE (user_id, post_id) があるので、重複行は入らない)
     if (error && error.code !== "23505") {
       console.error("like insert failed:", error.message);
       return;

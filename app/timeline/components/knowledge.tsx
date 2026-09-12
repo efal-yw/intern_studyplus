@@ -4,6 +4,7 @@ import PostTime from "./postTime";
 import Like from "./like";
 import Comments from "./comment";
 import type { TimelineComment } from "./getComments";
+import Link from "next/link";
 
 type Post = Database["public"]["Tables"]["posts"]["Row"];
 
@@ -44,10 +45,10 @@ export default async function KnowledgePost({
 
     return (
         <div>
-            <div className="flex items-center gap-2">
+            <Link href={`/users/${post_info.user_id}`} className="flex items-center gap-2">
                 <p>{author?.name}</p>
                 <PostTime createdAt={record.created_at} />
-            </div>
+            </Link>
             <div>
                 <p>{record.contents}</p>
             </div>

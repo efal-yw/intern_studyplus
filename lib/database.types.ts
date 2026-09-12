@@ -82,33 +82,33 @@ export type Database = {
       ff: {
         Row: {
           created_at: string
-          followee_id: string
-          follower_id: string
+          from_user_id: string
           id: number
+          to_user_id: string
         }
         Insert: {
           created_at?: string
-          followee_id: string
-          follower_id: string
+          from_user_id: string
           id?: never
+          to_user_id: string
         }
         Update: {
           created_at?: string
-          followee_id?: string
-          follower_id?: string
+          from_user_id?: string
           id?: never
+          to_user_id?: string
         }
         Relationships: [
           {
             foreignKeyName: "ff_followee_id_fkey"
-            columns: ["followee_id"]
+            columns: ["to_user_id"]
             isOneToOne: false
             referencedRelation: "users"
             referencedColumns: ["id"]
           },
           {
             foreignKeyName: "ff_follower_id_fkey"
-            columns: ["follower_id"]
+            columns: ["from_user_id"]
             isOneToOne: false
             referencedRelation: "users"
             referencedColumns: ["id"]

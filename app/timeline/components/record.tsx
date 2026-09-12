@@ -1,5 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import type { Database } from "@/lib/database.types";
+import PostTime from "./postTime";
 
 type Post = Database["public"]["Tables"]["posts"]["Row"];
 
@@ -16,7 +17,7 @@ export default async function RecordPost({ post_info }: { post_info: Post }) {
         .from("post_record")
         .select("*")
         .eq("post_id", post_info.post_id)
-        .single();
+        .maybeSingle();
 
     if (authorError) {
         console.error("author fetch failed:", authorError);
@@ -43,7 +44,7 @@ export default async function RecordPost({ post_info }: { post_info: Post }) {
         <div>
             <div className="flex items-center gap-2">
                 <p>{author?.name}</p>
-                <time>{record.created_at}</time>
+                <PostTime createdAt={record.created_at} />
             </div>
             <div>
                 <div>{textbook?.name}</div>

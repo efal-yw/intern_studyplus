@@ -14,6 +14,7 @@ import Visibility from "../visibility";
 import Comment from "../Comment";
 import ImageInput from "../ImageInput";
 import Question from "./Question";
+import TagsInput from "../tags";
 
 export default async function TextbookDetailPage(){
     const supabase = await createClient();
@@ -31,6 +32,15 @@ export default async function TextbookDetailPage(){
     // そのままでは中に伝わらない。ここで string として取り出しておく。
     const userId = user.id;
 
+    const { data: tagList, error: tagError } = await supabase
+      .from("tags")
+      .select("id, name");
+
+    if (tagError) {
+      console.error("Failed to fetch tag list:", tagError);
+      throw new Error(`Failed to fetch tag list: ${tagError.message}`);
+    }
+
   async function handleSubmit(formData: FormData) {
     "use server";
 
@@ -39,6 +49,8 @@ export default async function TextbookDetailPage(){
     const raw = Object.fromEntries(formData);
     const date = raw.date as string;
     const time = raw.time as string;
+    const tagIds = getText(raw.tags)?.split(", ") ?? [];
+
 
     // 入力された日時は JST として解釈して UTC に直す。
     // new Date(`${date}T${time}`) と書くとサーバーのローカルTZ解釈になり、
@@ -84,6 +96,24 @@ export default async function TextbookDetailPage(){
       throw new Error(`posts insert failed: ${postError?.message}`);
     }
 
+    // post_tags.post_id は posts.post_id を参照している。
+    // posts の insert より先に実行すると必ず外部キー違反になるので、
+    // 必ずこの位置 (posts 成功後) に置く。
+    if (tagIds.length > 0) {
+      const { error: tagInsertError } = await supabase
+        .from("post_tags")
+        .insert(tagIds.map((tagId) => ({ post_id: post.post_id, tag_id: tagId })));
+
+      if (tagInsertError) {
+        console.error("post_tags insert failed:", tagInsertError);
+        await supabase.from("posts").delete().eq("post_id", post.post_id);
+        if (imagePath) {
+          await removePostImage(supabase, imagePath);
+        }
+        throw new Error(`post_tags insert failed: ${tagInsertError.message}`);
+      }
+    }
+
     const record_record: TablesInsert<"post_ask"> = {
       post_id: post.post_id,
       // TODO(D-3): 空のまま送信できてしまう。バリデーションは後続で入れる
@@ -98,6 +128,9 @@ export default async function TextbookDetailPage(){
       // 子テーブルの insert に失敗すると posts だけが残る (孤児レコード)。
       // 本来は1トランザクションにまとめるべきで、これはそれまでの応急処置。
       console.error("post_ask insert failed:", childError);
+      // 先に入れた post_tags を消してから posts を消す。
+      // ON DELETE CASCADE が付いている保証がないので、順番に自分で落とす。
+      await supabase.from("post_tags").delete().eq("post_id", post.post_id);
       await supabase.from("posts").delete().eq("post_id", post.post_id);
       if (imagePath) {
         await removePostImage(supabase, imagePath);
@@ -121,6 +154,7 @@ export default async function TextbookDetailPage(){
       <DateTimeInput />
       <Question />
       <Comment />
+      <TagsInput tagList={tagList} />
       <ImageInput />
     </div>
 

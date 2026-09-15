@@ -1,4 +1,5 @@
 import type { createClient } from "@/lib/supabase/server";
+import { IMAGE_MIME } from "@/lib/post-form";
 
 type SupabaseServerClient = Awaited<ReturnType<typeof createClient>>;
 
@@ -28,7 +29,11 @@ export async function uploadPostImage(
   const { data, error } = await supabase.storage
     .from(POST_IMAGE_BUCKET)
     .upload(path, file, {
-      contentType: file.type,
+      // file.type ではなく固定値を渡す。file.type は送る側の申告値で、
+      // text/html などを指定されると Storage がその Content-Type で配信し、
+      // supabase.co 上で任意の HTML が開く状態になる。
+      // ここに置くのは getImageFile() を通った webp だけと決まっている。
+      contentType: IMAGE_MIME,
       // パスは投稿ごとに一意で、あとから差し替えることもない
       cacheControl: "31536000",
     });

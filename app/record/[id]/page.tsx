@@ -3,7 +3,12 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { notFound } from "next/navigation"; // 404ページを出すための機能
 import { jstInputToUtcISO } from "@/lib/datetime";
-import { getFile, getText, parseVisibility, toNullableInt } from "@/lib/post-form";
+import {
+  getImageFile,
+  getText,
+  parseVisibility,
+  toNullableInt,
+} from "@/lib/post-form";
 import {
   buildPostImagePath,
   removePostImage,
@@ -24,27 +29,42 @@ export default async function TextbookDetailPage({
 }) {
   const supabase = await createClient();
 
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  // 未ログインなら proxy 側でもリダイレクトされるが、ここでも必ず止める。
+  // (user が null のまま user_id に undefined を入れると insert が落ちる)
+  if (!user) {
+    redirect("/login");
+  }
+
+  // サーバーアクションは入れ子の関数なので、外側の絞り込み(user が null でない)が
+  // そのままでは中に伝わらない。ここで string として取り出しておく。
+  // ※ 以前はここが textbook.user_id (= 教材の持ち主) だった。URL の id を
+  //   他人の教材に差し替えるだけで他人名義の投稿を作りにいく形になっていたので、
+  //   ask / knowledge と同じくログインユーザーから取る形に揃えた。
+  const userId = user.id;
+
   // 1. URLの /record/123 から "123" を取り出す
   const { id: textbookId } = await params;
 
   // 2. Supabaseに「idが一致する教材を1個だけちょうだい」とお願いする
+  //    user_id も条件に入れる。textbook の RLS がどうなっていても
+  //    「自分の教材でなければ 404」が成立する。
   const { data: textbook, error } = await supabase
     .from("textbook")
     .select("*")
     .eq("id", textbookId)
+    .eq("user_id", userId)
     .single(); // 👈 1件だけ取得するための魔法のメソッド
 
   // 3. もしエラーになったり、教材が存在しなかったら 404 ページに飛ばす
+  //    (他人の教材もここに落ちる。「存在しない」と「見せない」を区別しないことで
+  //     id の総当たりで他人の教材の有無を探れないようにする)
   if (error || !textbook) {
     notFound();
   }
-
-
-  //　上まではAIにかいてもらったにょ。
-
-  // TODO(A-3): ここは「教材の持ち主」であってログインユーザーではない。
-  // RLS が効いていないと、URL の id を変えるだけで他人名義の投稿ができてしまう。
-  const userId = textbook.user_id;
 
   async function handleSubmit(formData: FormData) {
     "use server";
@@ -66,7 +86,7 @@ export default async function TextbookDetailPage({
     // (公開範囲を画像にも効かせるため) が、insert の戻りを待つと
     // アップロードが後追いになり、失敗時の巻き戻しが増えるため。
     const postId = crypto.randomUUID();
-    const imageFile = getFile(raw.image);
+    const imageFile = await getImageFile(raw.image);
     let imagePath: string | null = null;
 
     if (imageFile) {

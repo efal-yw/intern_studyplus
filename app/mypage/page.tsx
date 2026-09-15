@@ -5,6 +5,7 @@ import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { AVATAR_LIMITS, compressImage } from "@/lib/image";
+import { IMAGE_MIME } from "@/lib/post-form";
 import Avatar from "../_components/Avatar";
 import SignOutButton from "../_components/SignOutButton";
 
@@ -227,7 +228,14 @@ const uploadAvatar = async (file: File, userId: string) => {
   const { data, error } = await supabase.storage
     .from("avatars")
     .upload(path, compressed, {
-      contentType: compressed.type,
+      // compressed.type ではなく固定値を渡す。申告値をそのまま渡すと
+      // avatars は public バケットなので、text/html を指定して
+      // supabase.co 上で任意の HTML を配信できてしまう。
+      //
+      // ※ このアップロードはブラウザから Storage へ直接飛ぶので、
+      //   サーバー側で検証する余地がない。UI を通らない経路に効くのは
+      //   バケット設定の allowed_mime_types / file_size_limit だけ。
+      contentType: IMAGE_MIME,
       // パスが不変なので、期限を長く取って問題ない
       cacheControl: "31536000",
     });

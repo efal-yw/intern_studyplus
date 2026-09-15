@@ -46,6 +46,69 @@ export function getFile(value: FormDataEntryValue | undefined): File | null {
 }
 
 /**
+ * 画像は webp だけを受け取る。
+ *
+ * クライアント側 (lib/image.ts) が必ず webp に変換して 300KB 以下まで縮めるので、
+ * 正規の経路ならこの条件は自動的に満たされる。ここで改めて検査するのは、
+ * Server Action が UI を通さない POST でも叩けるため。
+ *
+ * MIME とバイト数の上限は lib/image.ts の AVATAR_LIMITS / POST_IMAGE_LIMITS が
+ * 参照する。数字をここに置いているのは、lib/image.ts が
+ * browser-image-compression を import していてサーバー側から読めないため。
+ */
+export const IMAGE_MIME = "image/webp";
+export const IMAGE_MAX_BYTES = 300 * 1024;
+
+/**
+ * 先頭12バイトが webp の形をしているか。
+ * RIFF####WEBP (#### はファイルサイズ) という構造になっている。
+ *
+ * file.type は multipart のヘッダに書かれた申告値でしかなく、送る側が
+ * 自由に詐称できる。実バイト列を見ないと「拡張子と Content-Type だけ webp の
+ * 別形式」を止められない。
+ */
+async function looksLikeWebp(file: File): Promise<boolean> {
+  const head = new Uint8Array(await file.slice(0, 12).arrayBuffer());
+
+  if (head.length < 12) {
+    return false;
+  }
+
+  const ascii = (start: number, end: number) =>
+    String.fromCharCode(...head.subarray(start, end));
+
+  return ascii(0, 4) === "RIFF" && ascii(8, 12) === "WEBP";
+}
+
+/**
+ * FormData の値を画像として取り出す。未選択なら null。
+ * 受け取れない形式・大きさなら投げる (投稿自体を成立させない)。
+ */
+export async function getImageFile(
+  value: FormDataEntryValue | undefined,
+): Promise<File | null> {
+  const file = getFile(value);
+
+  if (!file) {
+    return null;
+  }
+
+  if (file.type !== IMAGE_MIME) {
+    throw new Error(`unsupported image type: ${file.type}`);
+  }
+
+  if (file.size > IMAGE_MAX_BYTES) {
+    throw new Error(`image too large: ${file.size} bytes`);
+  }
+
+  if (!(await looksLikeWebp(file))) {
+    throw new Error("image content does not look like webp");
+  }
+
+  return file;
+}
+
+/**
  * 未入力なら null を返す。
  * 「0時間0分と入力した」と「そもそも入力していない」をDB上で区別するため、
  * 未入力を 0 に丸めない。

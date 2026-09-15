@@ -16,14 +16,19 @@ type Textbook = Pick<Tables<"textbook">, "id" | "name" | "category">;
 // [カテゴリー名, カテゴリーID, そのカテゴリーの教材一覧]
 type CategoryWithTextbooks = [string | null, string, Textbook[]];
 
+// user_id も条件に入れる。category_textbook 側は自分の行しか引いていないので
+// 通常ここに他人のカテゴリIDは来ないが、textbook の RLS がどうなっていても
+// 「自分の教材しか出ない」が成立するようにしておく。
 async function Record_by_category(
   textbook_category_id: string,
+  userId: string,
   supabase: SupabaseServerClient,
 ): Promise<Textbook[]> {
   const { data: textbooks_by_category }  = await supabase
     .from("textbook")
     .select("id, name, category")
-    .eq("category", textbook_category_id);
+    .eq("category", textbook_category_id)
+    .eq("user_id", userId);
   //retrieve textbooks by category
 
   return textbooks_by_category ?? [];
@@ -43,7 +48,7 @@ async function RecordList(user: User, supabase: SupabaseServerClient) {
       async (category): Promise<CategoryWithTextbooks> => [
         category.category_name,
         category.id,
-        await Record_by_category(category.id, supabase),
+        await Record_by_category(category.id, user.id, supabase),
       ]
     )
   );

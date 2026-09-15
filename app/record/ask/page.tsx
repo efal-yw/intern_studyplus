@@ -2,7 +2,7 @@ import { createClient } from "@/lib/supabase/server";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { jstInputToUtcISO } from "@/lib/datetime";
-import { getFile, getText, parseVisibility } from "@/lib/post-form";
+import { getImageFile, getText, parseVisibility } from "@/lib/post-form";
 import {
   buildPostImagePath,
   removePostImage,
@@ -52,7 +52,7 @@ export default async function TextbookDetailPage(){
     // (公開範囲を画像にも効かせるため) が、insert の戻りを待つと
     // アップロードが後追いになり、失敗時の巻き戻しが増えるため。
     const postId = crypto.randomUUID();
-    const imageFile = getFile(raw.image);
+    const imageFile = await getImageFile(raw.image);
     let imagePath: string | null = null;
 
     if (imageFile) {

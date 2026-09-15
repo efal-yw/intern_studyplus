@@ -18,17 +18,17 @@ export type Database = {
         Row: {
           category_name: string | null
           id: string
-          user_id: string | null
+          user_id: string
         }
         Insert: {
           category_name?: string | null
           id?: string
-          user_id?: string | null
+          user_id: string
         }
         Update: {
           category_name?: string | null
           id?: string
-          user_id?: string | null
+          user_id?: string
         }
         Relationships: [
           {
@@ -202,19 +202,19 @@ export type Database = {
           hours: number | null
           minutes: number | null
           post_id: string
-          textbook: string
+          textbook: string | null
         }
         Insert: {
           hours?: number | null
           minutes?: number | null
           post_id: string
-          textbook: string
+          textbook?: string | null
         }
         Update: {
           hours?: number | null
           minutes?: number | null
           post_id?: string
-          textbook?: string
+          textbook?: string | null
         }
         Relationships: [
           {

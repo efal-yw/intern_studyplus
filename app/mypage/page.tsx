@@ -101,6 +101,35 @@ function StatusMessage({
   );
 }
 
+const uploadAvatar = async (file: File, userId: string) => {
+  const supabase = createClient();
+  const { data, error } = await supabase.storage
+    .from("avatars")
+    .upload(userId, file, { upsert: true });
+
+  if (error) {
+    console.error("Error uploading user card:", error);
+    throw new Error("Failed to upload user card");
+  }
+
+  return data.path;
+};
+
+function Avatar({ userId }: { userId: string }) {
+  const supabase = createClient();
+  const { data } = supabase.storage
+    .from("avatars")
+    .getPublicUrl(userId);
+
+  if (data?.publicUrl) {
+    return (<Image src={data.publicUrl} alt="Avatar" width={32} height={32} className="aspect-square rounded-full" />);
+  }
+  return (<Image src="/favicon.ico" alt="favicon" width={32} height={32} className="aspect-square rounded-full" />);
+}
+
+
+
+
 export default function MyPage() {
   const router = useRouter();
   const [userId, setUserId] = useState<string | null>(null);
@@ -165,16 +194,11 @@ export default function MyPage() {
     return null;
   }
 
+
   return (
     <div className="flex flex-1 flex-col gap-4 p-6">
       <div className="flex flex-col items-start gap-4 justify-start">
-        <Image
-          src="/favicon.ico"
-          alt="favicon"
-          width={32}
-          height={32}
-          className="aspect-square rounded-full"
-        />
+        <Avatar userId={userId} />
         {profile.name && (
           <p className="text-lg font-semibold text-black">{profile.name}</p>
         )}

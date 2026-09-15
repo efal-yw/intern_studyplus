@@ -3,13 +3,10 @@
 import { useEffect, useState, type ChangeEvent, type FormEvent } from "react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
-import imageCompression from "browser-image-compression";
 import { createClient } from "@/lib/supabase/client";
+import { AVATAR_LIMITS, compressImage } from "@/lib/image";
 import Avatar from "../_components/Avatar";
 import SignOutButton from "../_components/SignOutButton";
-
-const AVATAR_MAX_BYTES = 300 * 1024;
-const AVATAR_MAX_EDGE = 512;
 
 type Profile = {
   name: string | null;
@@ -219,21 +216,7 @@ function ProfileEditor({
 }
 
 const uploadAvatar = async (file: File, userId: string) => {
-  // 300KB を下回るまで解像度と品質を段階的に落とす。
-  // Web Worker の起動に失敗した場合はライブラリ側がメインスレッドにフォールバックする
-  const compressed = await imageCompression(file, {
-    maxSizeMB: AVATAR_MAX_BYTES / (1024 * 1024),
-    maxWidthOrHeight: AVATAR_MAX_EDGE,
-    fileType: "image/webp",
-    useWebWorker: true,
-  });
-
-  // maxSizeMB はベストエフォート(既定で最大 10 回)なので、実際のサイズを確認する
-  if (compressed.size > AVATAR_MAX_BYTES) {
-    throw new Error(
-      `Avatar is still ${Math.round(compressed.size / 1024)}KB after compression`
-    );
-  }
+  const compressed = await compressImage(file, AVATAR_LIMITS);
 
   // アップロードごとに新しいパスにする。URL が毎回変わるので上書きが起きず、
   // キャッシュを消す必要がない。先頭を user_id にしてあるのは Storage の

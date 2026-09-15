@@ -2,11 +2,17 @@ import { createClient } from "@/lib/supabase/server";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { jstInputToUtcISO } from "@/lib/datetime";
-import { getText, parseVisibility } from "@/lib/post-form";
+import { getFile, getText, parseVisibility } from "@/lib/post-form";
+import {
+  buildPostImagePath,
+  removePostImage,
+  uploadPostImage,
+} from "@/lib/post-image";
 import type { TablesInsert } from "@/lib/database.types";
 import DateTimeInput from "../datetime";
 import Visibility from "../visibility";
 import Comment from "../Comment";
+import ImageInput from "../ImageInput";
 
 import Knowledge from "./knowledge";
 
@@ -43,12 +49,26 @@ export default async function TextbookDetailPage(){
       jstInputToUtcISO(date, time) ?? new Date().toISOString();
 
 
+    // post_id をここで決めてしまう。画像のパスに post_id が要る
+    // (公開範囲を画像にも効かせるため) が、insert の戻りを待つと
+    // アップロードが後追いになり、失敗時の巻き戻しが増えるため。
+    const postId = crypto.randomUUID();
+    const imageFile = getFile(raw.image);
+    let imagePath: string | null = null;
+
+    if (imageFile) {
+      imagePath = buildPostImagePath(userId, postId);
+      await uploadPostImage(supabase, imagePath, imageFile);
+    }
+
     const record_post: TablesInsert<"posts"> = {
+      post_id: postId,
       user_id: userId,
       type: "knowledge",
       note: getText(raw.comment),
       visibility: parseVisibility(raw.visibility),
       created_at: studiedAtISO,
+      image: imagePath,
     };
 
     const { data: post, error: postError } = await supabase
@@ -59,6 +79,9 @@ export default async function TextbookDetailPage(){
 
     if (postError || !post) {
       console.error("posts insert failed:", postError);
+      if (imagePath) {
+        await removePostImage(supabase, imagePath);
+      }
       throw new Error(`posts insert failed: ${postError?.message}`);
     }
 
@@ -77,6 +100,9 @@ export default async function TextbookDetailPage(){
       // 本来は1トランザクションにまとめるべきで、これはそれまでの応急処置。
       console.error("post_knowledge insert failed:", childError);
       await supabase.from("posts").delete().eq("post_id", post.post_id);
+      if (imagePath) {
+        await removePostImage(supabase, imagePath);
+      }
       throw new Error(`post_knowledge insert failed: ${childError.message}`);
     }
 
@@ -96,6 +122,7 @@ export default async function TextbookDetailPage(){
       <DateTimeInput />
       <Knowledge />
       <Comment />
+      <ImageInput />
     </div>
 
     </form>

@@ -200,21 +200,18 @@ export type Database = {
       post_record: {
         Row: {
           hours: number | null
-          image: string | null
           minutes: number | null
           post_id: string
           textbook: string
         }
         Insert: {
           hours?: number | null
-          image?: string | null
           minutes?: number | null
           post_id: string
           textbook: string
         }
         Update: {
           hours?: number | null
-          image?: string | null
           minutes?: number | null
           post_id?: string
           textbook?: string
@@ -239,6 +236,7 @@ export type Database = {
       posts: {
         Row: {
           created_at: string
+          image: string | null
           note: string | null
           post_id: string
           type: Database["public"]["Enums"]["post_type"]
@@ -247,6 +245,7 @@ export type Database = {
         }
         Insert: {
           created_at?: string
+          image?: string | null
           note?: string | null
           post_id?: string
           type: Database["public"]["Enums"]["post_type"]
@@ -255,6 +254,7 @@ export type Database = {
         }
         Update: {
           created_at?: string
+          image?: string | null
           note?: string | null
           post_id?: string
           type?: Database["public"]["Enums"]["post_type"]

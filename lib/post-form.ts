@@ -35,6 +35,17 @@ export function getText(value: FormDataEntryValue | undefined): string | null {
 }
 
 /**
+ * FormData の値をファイルとして取り出す。未選択のとき input は
+ * サイズ0の File を送ってくるので、それも null 扱いにする。
+ */
+export function getFile(value: FormDataEntryValue | undefined): File | null {
+  if (!(value instanceof File) || value.size === 0) {
+    return null;
+  }
+  return value;
+}
+
+/**
  * 未入力なら null を返す。
  * 「0時間0分と入力した」と「そもそも入力していない」をDB上で区別するため、
  * 未入力を 0 に丸めない。

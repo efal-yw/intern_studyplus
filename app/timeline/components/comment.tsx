@@ -2,6 +2,7 @@
 
 import { useActionState, useOptimistic, useState, useTransition } from "react";
 import { Pencil, X } from "lucide-react";
+import ConfirmButton from "@/app/_components/ConfirmButton";
 import PostTime from "./postTime";
 import { addComment, deleteComment, updateComment } from "./commentActions";
 import type { TimelineComment } from "./getComments";
@@ -13,7 +14,7 @@ function CommentRow({
     onDelete,
 }: {
     comment: TimelineComment;
-    onDelete: (commentId: string) => void;
+    onDelete: (commentId: string) => Promise<void>;
 }) {
     const [isEditing, setIsEditing] = useState(false);
     const [draft, setDraft] = useState(comment.contents);
@@ -84,14 +85,15 @@ function CommentRow({
                         >
                             <Pencil className="size-4" />
                         </button>
-                        <button
-                            type="button"
-                            onClick={() => onDelete(comment.comment_id)}
-                            aria-label="コメントを削除"
-                            className="text-zinc-400"
+                        <ConfirmButton
+                            onConfirm={() => onDelete(comment.comment_id)}
+                            triggerLabel="コメントを削除"
+                            triggerClassName="text-zinc-400"
+                            message="このコメントを削除しますか？"
+                            description="元に戻せません。"
                         >
                             <X className="size-4" />
-                        </button>
+                        </ConfirmButton>
                     </>
                 )}
             </div>
@@ -120,18 +122,12 @@ export default function Comments({
         (current: TimelineComment[], commentId: string) =>
             current.filter((comment) => comment.comment_id !== commentId)
     );
-    const [, startTransition] = useTransition();
-
-    function handleDelete(commentId: string) {
-        // 取り消せない操作なので一度だけ確認する。
-        if (!window.confirm("このコメントを削除しますか？")) {
-            return;
-        }
-
-        startTransition(async () => {
-            hideComment(commentId);
-            await deleteComment(commentId);
-        });
+    // 確認ダイアログは ConfirmButton 側にあり、これはその承認後に呼ばれる。
+    // ConfirmButton が startTransition の中で await するので、hideComment を
+    // トランジション内で呼ぶという useOptimistic の条件はここで満たされている。
+    async function handleDelete(commentId: string) {
+        hideComment(commentId);
+        await deleteComment(commentId);
     }
 
     return (

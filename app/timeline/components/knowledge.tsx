@@ -5,6 +5,10 @@ import Like from "./like";
 import Comments from "./comment";
 import type { TimelineComment } from "./getComments";
 import Avatar from "@/app/_components/Avatar";
+import { signPostImage } from "@/lib/post-image";
+import { getCurrentUser } from "@/lib/auth/current-user";
+import PostImage from "./postImage";
+import DeletePost from "./deletePost";
 import Link from "next/link";
 
 type Post = Database["public"]["Tables"]["posts"]["Row"];
@@ -21,6 +25,8 @@ export default async function KnowledgePost({
     comments: TimelineComment[];
 }) {
     const supabase = await createClient();
+    const viewer = await getCurrentUser();
+    const isOwnPost = viewer?.id === post_info.user_id;
 
     const { data: author, error: authorError } = await supabase
         .from("users")
@@ -45,7 +51,8 @@ export default async function KnowledgePost({
     const record = { ...post_info, ...postKnowledge };
 
     return (
-        <div>
+        <div className="relative">
+            {isOwnPost && <DeletePost postId={post_info.post_id} />}
             <Link href={`/users/${post_info.user_id}`} className="flex items-center gap-2">
                 <Avatar avatarPath={author?.avatar_path} />
                 <p>{author?.name}</p>
@@ -55,6 +62,7 @@ export default async function KnowledgePost({
                 <p>{record.contents}</p>
             </div>
             {record.note && <p>{record.note}</p>}
+            <PostImage src={await signPostImage(supabase, post_info.image)} />
             <Like postId={post_info.post_id} count={likeCount} liked={liked} />
             <Comments postId={post_info.post_id} comments={comments} />
         </div>

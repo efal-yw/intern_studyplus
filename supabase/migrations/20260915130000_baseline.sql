@@ -5,7 +5,7 @@
 --
 -- 【既存のリモートDB（本番）には流さない】
 --   中身はすでに全部入っている。履歴に記録するだけ:
---     npx supabase@latest migration repair --status applied 20260915200000
+--     npx supabase@latest migration repair --status applied 20260915130000
 --
 -- 【空の新規プロジェクトには流してよい】
 --   検証用プロジェクトを作るときは、これを db push すればスキーマが再現する。

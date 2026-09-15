@@ -5,3 +5,6 @@ supabase/tools/dump-schema.sql
 
 # 環境変数（絶対にコミットしない）
 .env
+
+# db:baseline で取ったスナップショット（記録用。コミットしない）
+snapshots/

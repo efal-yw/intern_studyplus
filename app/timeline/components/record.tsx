@@ -49,17 +49,29 @@ export default async function RecordPost({
     }
 
     const record = { ...post_info, ...postRecord };
+    // 0件は異常ではないので single() にしない。
+    // 教材は on delete set null で参照が切れることがあり (その場合は
+    // record.textbook 自体が null)、RLS 側でも取れない可能性が残る。
+    // single() は0件を PGRST116 のエラーにするため、通常の表示で
+    // console にエラーが出続けることになる。
     const { data: textbook, error: textbookError } = record.textbook
         ? await supabase
               .from("textbook")
               .select("name")
               .eq("id", record.textbook)
-              .single()
+              .maybeSingle()
         : { data: null, error: null };
 
     if (textbookError) {
         console.error("textbook fetch failed:", textbookError);
     }
+
+    // post_record が無い投稿 (孤児レコード) と、教材が削除された記録を分ける。
+    // 前者は教材欄そのものを出さない。後者は時間とメモが残っているので、
+    // 何の記録か分からなくならないよう「削除された教材」と明示する。
+    const textbookLabel = postRecord
+        ? (textbook?.name ?? "削除された教材")
+        : null;
 
     return (
         <div className="relative">
@@ -70,7 +82,7 @@ export default async function RecordPost({
                 <PostTime createdAt={record.created_at} />
             </Link>
             <div>
-                <div>{textbook?.name}</div>
+                {textbookLabel && <div>{textbookLabel}</div>}
                 {record.hours != null && record.minutes != null ? (
                     <p>
                         {record.hours}時間{record.minutes}分

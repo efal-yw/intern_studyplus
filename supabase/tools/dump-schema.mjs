@@ -22,7 +22,7 @@
 //   3. supabase/migrations/<日時>_baseline.sql ができる
 //
 // 出力先を変えたいときは第1引数で渡す:
-//   node supabase/tools/dump-schema.mjs supabase/migrations/20260915200000_baseline.sql
+//   node supabase/tools/dump-schema.mjs supabase/migrations/<日時>_baseline.sql
 //
 // 注意:
 //   接続文字列にはDBのパスワードが入る。環境変数で渡すこと（引数に書くと

@@ -4,6 +4,7 @@ import PostTime from "./postTime";
 import Like from "./like";
 import Comments from "./comment";
 import type { TimelineComment } from "./getComments";
+import Avatar from "@/app/_components/Avatar";
 import Link from "next/link";
 
 type Post = Database["public"]["Tables"]["posts"]["Row"];
@@ -23,7 +24,7 @@ export default async function KnowledgePost({
 
     const { data: author, error: authorError } = await supabase
         .from("users")
-        .select("name")
+        .select("name, avatar_path")
         .eq("id", post_info.user_id)
         .single();
 
@@ -46,6 +47,7 @@ export default async function KnowledgePost({
     return (
         <div>
             <Link href={`/users/${post_info.user_id}`} className="flex items-center gap-2">
+                <Avatar avatarPath={author?.avatar_path} />
                 <p>{author?.name}</p>
                 <PostTime createdAt={record.created_at} />
             </Link>

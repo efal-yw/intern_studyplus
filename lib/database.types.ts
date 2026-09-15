@@ -100,15 +100,15 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "ff_followee_id_fkey"
-            columns: ["to_user_id"]
+            foreignKeyName: "ff_from_user_id_fkey"
+            columns: ["from_user_id"]
             isOneToOne: false
             referencedRelation: "users"
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "ff_follower_id_fkey"
-            columns: ["from_user_id"]
+            foreignKeyName: "ff_to_user_id_fkey"
+            columns: ["to_user_id"]
             isOneToOne: false
             referencedRelation: "users"
             referencedColumns: ["id"]
@@ -312,6 +312,7 @@ export type Database = {
       }
       users: {
         Row: {
+          avatar_path: string | null
           created_at: string
           follower_count: number
           following_count: number
@@ -320,6 +321,7 @@ export type Database = {
           status_message: string | null
         }
         Insert: {
+          avatar_path?: string | null
           created_at?: string
           follower_count?: number
           following_count?: number
@@ -328,6 +330,7 @@ export type Database = {
           status_message?: string | null
         }
         Update: {
+          avatar_path?: string | null
           created_at?: string
           follower_count?: number
           following_count?: number

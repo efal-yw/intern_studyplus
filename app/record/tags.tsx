@@ -2,9 +2,13 @@
 
 import { useState } from "react";
 import { Tags } from "lucide-react";
+import type { Tables } from "@/lib/database.types";
 
-export default function TagsInput({tagList}) {
-  const [tags, setTags] = useState([]);
+// 実スキーマから引く。id は uuid なので string、name は null を許す
+type Tag = Pick<Tables<"tags">, "id" | "name">;
+
+export default function TagsInput({ tagList }: { tagList: Tag[] }) {
+  const [tags, setTags] = useState<string[]>([]);
 
   return (
     <div className="flex items-start gap-2">
@@ -13,9 +17,11 @@ export default function TagsInput({tagList}) {
       </label>
       {tagList.map((tag) => <button key={tag.id} type="button" 
         className={`${tags.includes(tag.id) ? "bg-blue-500 text-white" : "bg-gray-200 text-gray-700"}`}
-        onClick={
-            ()=> {tags.includes(tag.id) ? setTags(tags.filter((t) => t !== tag.id)) : setTags([...tags, tag.id])}
-            }>{tag.name}</button>)}
+        onClick={() =>
+          setTags((prev) =>
+            prev.includes(tag.id) ? prev.filter((t) => t !== tag.id) : [...prev, tag.id],
+          )
+        }>{tag.name}</button>)}
       <input type="hidden" value={tags.join(", ")} readOnly name="tags"/>
     </div>
   );

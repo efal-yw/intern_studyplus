@@ -12,7 +12,7 @@ export default function Sidebar() {
   }
 
   return (
-    <nav className="sticky top-0 flex w-[30%] h-dvh shrink-0 flex-col border-r border-black/[.08] bg-white">
+    <nav className="sticky top-0 flex w-[20%] h-dvh shrink-0 flex-col border-r border-black/[.08] bg-white">
       {NAV_ITEMS.map((item) => {
         const active = pathname === item.href;
         return (

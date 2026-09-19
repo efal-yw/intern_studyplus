@@ -18,12 +18,14 @@ export default async function RecordPost({
     post_info,
     likeCount,
     liked,
-    comments
+    comments,
+    tags
 }: {
     post_info: Post;
     likeCount: number;
     liked: boolean;
     comments: TimelineComment[];
+    tags : TimelineTag[];
 }) {
     const supabase = await createClient();
     const viewer = await getCurrentUser();
@@ -93,6 +95,9 @@ export default async function RecordPost({
             </div>
             {record.note && <p>{record.note}</p>}
             <PostImage src={await signPostImage(supabase, post_info.image)} />
+            <li>
+            {tags.map((tag)=>(<ul>tag.name</ul>))}
+            </li>
             <Like postId={post_info.post_id} count={likeCount} liked={liked} />
             <Comments postId={post_info.post_id} comments={comments} />
         </div>

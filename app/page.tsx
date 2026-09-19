@@ -70,6 +70,7 @@ export default async function TimelinePage({
                             likeCount={likeCount}
                             liked={liked}
                             comments={comments}
+                            tags={tags}
             
                         />
                     );
@@ -83,6 +84,7 @@ export default async function TimelinePage({
                             likeCount={likeCount}
                             liked={liked}
                             comments={comments}
+                            tags={tags}
                             
                         />
                     );

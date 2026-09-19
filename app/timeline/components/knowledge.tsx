@@ -10,6 +10,7 @@ import { getCurrentUser } from "@/lib/auth/current-user";
 import PostImage from "./postImage";
 import DeletePost from "./deletePost";
 import Link from "next/link";
+import { TimelineTag } from "./getTags";
 
 type Post = Database["public"]["Tables"]["posts"]["Row"];
 
@@ -18,11 +19,13 @@ export default async function KnowledgePost({
     likeCount,
     liked,
     comments,
+    tags
 }: {
     post_info: Post;
     likeCount: number;
     liked: boolean;
     comments: TimelineComment[];
+    tags: TimelineTag[];
 }) {
     const supabase = await createClient();
     const viewer = await getCurrentUser();
@@ -63,6 +66,11 @@ export default async function KnowledgePost({
             </div>
             {record.note && <p>{record.note}</p>}
             <PostImage src={await signPostImage(supabase, post_info.image)} />
+            {tags ?
+            (<ul>
+            {tags.map((tag)=>(<li key={tag.id}>{tag.name}</li>))}
+            </ul>)
+            : null}
             <Like postId={post_info.post_id} count={likeCount} liked={liked} />
             <Comments postId={post_info.post_id} comments={comments} />
         </div>

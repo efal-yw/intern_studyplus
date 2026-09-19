@@ -1,5 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
 
+// コメント本文を実際に表示するのは投稿詳細ページ (app/post/[id]) とその配下の
+// comment.tsx なので、この型はそちらから参照される。
 export type TimelineComment = {
   comment_id: string;
   contents: string;
@@ -9,48 +11,34 @@ export type TimelineComment = {
   isMine: boolean;
 };
 
-// タイムラインに並ぶ投稿のコメントを、まとめて1クエリで取る (getLikes と同じ考え方)。
-// 投稿者名は users を埋め込んで一緒に引く。
-// comments_user_id_fkey があるので PostgREST が結合を解決できる。
+// タイムラインに並ぶ投稿のコメント数を、まとめて1クエリで取る (getLikes と同じ考え方)。
+// 一覧では本文を出さない(タップして詳細ページで出す)ので、本文と投稿者名は引かない。
+// 投稿ごとに count を投げると30回のクエリになるため、post_id だけ全件引いて JS 側で数える。
 // comments の RLS(select) は likes と同じ can_view_post(post_id) なので、
-// 投稿が見えていれば他人のコメントも読める。
-export async function getComments(
-  postIds: string[],
-  currentUserId: string | null
-) {
-  const byPost = new Map<string, TimelineComment[]>();
+// ここで数えられるのは「その投稿が見えている場合の、その投稿のコメント全件」になる。
+export async function getCommentCounts(postIds: string[]) {
+  const counts = new Map<string, number>();
 
   if (postIds.length === 0) {
-    return byPost;
+    return counts;
   }
 
   const supabase = await createClient();
 
   const { data: comments, error } = await supabase
     .from("comments")
-    .select("comment_id, post_id, contents, created_at, user_id, users(name)")
-    .in("post_id", postIds)
-    .order("created_at", { ascending: true });
+    .select("post_id")
+    .in("post_id", postIds);
 
   if (error) {
     // コメントが取れなくてもタイムライン自体は出したいので、throw せず0件扱いにする。
     console.error("comments fetch failed:", error.message);
-    return byPost;
+    return counts;
   }
 
   for (const comment of comments ?? []) {
-    const list = byPost.get(comment.post_id) ?? [];
-
-    list.push({
-      comment_id: comment.comment_id,
-      contents: comment.contents,
-      created_at: comment.created_at,
-      authorName: comment.users?.name ?? null,
-      isMine: comment.user_id === currentUserId,
-    });
-
-    byPost.set(comment.post_id, list);
+    counts.set(comment.post_id, (counts.get(comment.post_id) ?? 0) + 1);
   }
 
-  return byPost;
+  return counts;
 }

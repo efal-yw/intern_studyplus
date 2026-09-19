@@ -2,8 +2,7 @@ import { createClient } from "@/lib/supabase/server";
 import type { Database } from "@/lib/database.types";
 import PostTime from "./postTime";
 import Like from "./like";
-import Comments from "./comment";
-import type { TimelineComment } from "./getComments";
+import CommentCount from "./commentCount";
 import type { TimelineTag } from "./getTags";
 import Avatar from "@/app/_components/Avatar";
 import { signPostImage } from "@/lib/post-image";
@@ -18,13 +17,13 @@ export default async function RecordPost({
   post_info,
   likeCount,
   liked,
-  comments,
+  commentCount,
   tags,
 }: {
   post_info: Post;
   likeCount: number;
   liked: boolean;
-  comments: TimelineComment[];
+  commentCount: number;
   tags: TimelineTag[];
 }) {
   const supabase = await createClient();
@@ -112,7 +111,10 @@ export default async function RecordPost({
             </ul>
           ) : null}
         </Link>
-        <Like postId={post_info.post_id} count={likeCount} liked={liked} />
+        <div className="flex items-center gap-4">
+          <Like postId={post_info.post_id} count={likeCount} liked={liked} />
+          <CommentCount postId={post_info.post_id} count={commentCount} />
+        </div>
       </div>
     </div>
   );

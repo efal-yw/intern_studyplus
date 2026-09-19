@@ -2,6 +2,7 @@ import { createClient } from "@/lib/supabase/server";
 import type { Database } from "@/lib/database.types";
 import PostTime from "@/app/timeline/components/postTime";
 import Like from "@/app/timeline/components/like";
+import CommentCount from "@/app/timeline/components/commentCount";
 import Comments from "@/app/timeline/components/comment";
 import type { TimelineComment } from "@/app/timeline/components/getComments";
 import Avatar from "@/app/_components/Avatar";
@@ -76,7 +77,11 @@ export default async function KnowledgePost({
           ))}
         </ul>
       ) : null}
-      <Like postId={post_info.post_id} count={likeCount} liked={liked} />
+      <div className="flex items-center gap-4">
+        <Like postId={post_info.post_id} count={likeCount} liked={liked} />
+        {/* 一覧と違いコメントは既に取得済みなので、その件数をそのまま出す。 */}
+        <CommentCount count={comments.length} />
+      </div>
       <Comments postId={post_info.post_id} comments={comments} />
     </div>
   );

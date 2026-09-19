@@ -1,6 +1,6 @@
 import { getPosts } from "./timeline/components/getPosts";
 import { getLikes } from "./timeline/components/getLikes";
-import { getComments } from "./timeline/components/getComments";
+import { getCommentCounts } from "./timeline/components/getComments";
 import { getTags } from "./timeline/components/getTags";
 import RecordPost from "./timeline/components/record";
 import KnowledgePost from "./timeline/components/knowledge";
@@ -31,9 +31,9 @@ export default async function TimelinePage({
     // いいね・コメントは投稿ごとに引かず、それぞれ1クエリにまとめる。
     // 互いに独立したクエリなので並列で投げる。
     const postIds = posts.map((post) => post.post_id);
-    const [{ counts, likedByMe }, commentsByPost, tagsByPost] = await Promise.all([
+    const [{ counts, likedByMe }, commentCounts, tagsByPost] = await Promise.all([
         getLikes(postIds, user?.id ?? null),
-        getComments(postIds, user?.id ?? null),
+        getCommentCounts(postIds),
         getTags(postIds)
     ]);
 
@@ -45,7 +45,7 @@ export default async function TimelinePage({
             {posts.map((post) => {
                 const likeCount = counts.get(post.post_id) ?? 0;
                 const liked = likedByMe.has(post.post_id);
-                const comments = commentsByPost.get(post.post_id) ?? [];
+                const commentCount = commentCounts.get(post.post_id) ?? 0;
                 const tags = tagsByPost.get(post.post_id) ?? [];
                 
 
@@ -56,7 +56,7 @@ export default async function TimelinePage({
                             post_info={post}
                             likeCount={likeCount}
                             liked={liked}
-                            comments={comments}
+                            commentCount={commentCount}
                             tags={tags}
                         />
                     );
@@ -69,9 +69,9 @@ export default async function TimelinePage({
                             post_info={post}
                             likeCount={likeCount}
                             liked={liked}
-                            comments={comments}
+                            commentCount={commentCount}
                             tags={tags}
-            
+
                         />
                     );
                 }
@@ -83,9 +83,9 @@ export default async function TimelinePage({
                             post_info={post}
                             likeCount={likeCount}
                             liked={liked}
-                            comments={comments}
+                            commentCount={commentCount}
                             tags={tags}
-                            
+
                         />
                     );
                 }

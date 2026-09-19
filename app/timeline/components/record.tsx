@@ -93,25 +93,27 @@ export default async function RecordPost({
           <p>{author?.name}</p>
           <PostTime createdAt={record.created_at} />
         </Link>
-        <div className="flex flex-col rounded-md bg-zinc-100">
-          {textbookLabel && <div className="font-bold">{textbookLabel}</div>}
-          {record.hours != null && record.minutes != null ? (
-            <p>
-              <b>{record.hours}</b>時間<b>{record.minutes}</b>分
-            </p>
+        <Link href="app\post\{}">
+          <div className="flex flex-col rounded-md bg-zinc-100">
+            {textbookLabel && <div className="font-bold">{textbookLabel}</div>}
+            {record.hours != null && record.minutes != null ? (
+              <p>
+                <b>{record.hours}</b>時間<b>{record.minutes}</b>分
+              </p>
+            ) : null}
+          </div>
+          {record.note && <p>{record.note}</p>}
+          <PostImage src={await signPostImage(supabase, post_info.image)} />
+          {tags ? (
+            <ul>
+              {tags.map((tag) => (
+                <li key={tag.id}>{tag.name}</li>
+              ))}
+            </ul>
           ) : null}
-        </div>
-        {record.note && <p>{record.note}</p>}
-        <PostImage src={await signPostImage(supabase, post_info.image)} />
-        {tags ? (
-          <ul>
-            {tags.map((tag) => (
-              <li key={tag.id}>{tag.name}</li>
-            ))}
-          </ul>
-        ) : null}
-        <Like postId={post_info.post_id} count={likeCount} liked={liked} />
-        <Comments postId={post_info.post_id} comments={comments} />
+          <Like postId={post_info.post_id} count={likeCount} liked={liked} />
+          <Comments postId={post_info.post_id} comments={comments} />
+        </Link>
       </div>
     </div>
   );

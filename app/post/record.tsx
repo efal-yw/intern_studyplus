@@ -1,15 +1,15 @@
 import { createClient } from "@/lib/supabase/server";
 import type { Database } from "@/lib/database.types";
-import PostTime from "./postTime";
-import Like from "./like";
-import Comments from "./comment";
-import type { TimelineComment } from "./getComments";
-import type { TimelineTag } from "./getTags";
+import PostTime from "@/app/timeline/components/postTime";
+import Like from "@/app/timeline/components/like";
+import Comments from "@/app/timeline/components/comment";
+import type { TimelineComment } from "@/app/timeline/components/getComments";
+import type { TimelineTag } from "@/app/timeline/components/getTags";
 import Avatar from "@/app/_components/Avatar";
 import { signPostImage } from "@/lib/post-image";
 import { getCurrentUser } from "@/lib/auth/current-user";
-import PostImage from "./postImage";
-import DeletePost from "./deletePost";
+import PostImage from "@/app/timeline/components/postImage";
+import DeletePost from "@/app/timeline/components/deletePost";
 import Link from "next/link";
 
 type Post = Database["public"]["Tables"]["posts"]["Row"];

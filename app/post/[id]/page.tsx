@@ -2,9 +2,9 @@ import { createClient } from "@/lib/supabase/server";
 import { getCurrentUser } from "@/lib/auth/current-user";
 import type { TimelineComment } from "@/app/timeline/components/getComments";
 import type { TimelineTag } from "@/app/timeline/components/getTags";
-import RecordPost from "@/app/timeline/components/record";
-import KnowledgePost from "@/app/timeline/components/knowledge";
-import AskPost from "@/app/timeline/components/ask";
+import RecordPost from "@/app/post/record";
+import KnowledgePost from "@/app/post/knowledge";
+import AskPost from "@/app/post/ask";
 
 async function getPostInfo(postId: string) {
   const supabase = await createClient();

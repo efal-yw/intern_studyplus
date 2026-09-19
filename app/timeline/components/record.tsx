@@ -93,7 +93,7 @@ export default async function RecordPost({
           <p>{author?.name}</p>
           <PostTime createdAt={record.created_at} />
         </Link>
-        <Link href="app\post\{}">
+        <Link href={`/post/${post_info.post_id}`}>
           <div className="flex flex-col rounded-md bg-zinc-100">
             {textbookLabel && <div className="font-bold">{textbookLabel}</div>}
             {record.hours != null && record.minutes != null ? (
@@ -112,7 +112,6 @@ export default async function RecordPost({
             </ul>
           ) : null}
           <Like postId={post_info.post_id} count={likeCount} liked={liked} />
-          <Comments postId={post_info.post_id} comments={comments} />
         </Link>
       </div>
     </div>

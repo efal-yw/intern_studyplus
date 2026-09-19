@@ -1,20 +1,20 @@
 import { createClient } from "@/lib/supabase/server";
 import type { Database } from "@/lib/database.types";
-import PostTime from "./postTime";
-import Like from "./like";
-import Comments from "./comment";
-import type { TimelineComment } from "./getComments";
+import PostTime from "@/app/timeline/components/postTime";
+import Like from "@/app/timeline/components/like";
+import Comments from "@/app/timeline/components/comment";
+import type { TimelineComment } from "@/app/timeline/components/getComments";
 import Avatar from "@/app/_components/Avatar";
 import { signPostImage } from "@/lib/post-image";
 import { getCurrentUser } from "@/lib/auth/current-user";
-import PostImage from "./postImage";
-import DeletePost from "./deletePost";
+import PostImage from "@/app/timeline/components/postImage";
+import DeletePost from "@/app/timeline/components/deletePost";
 import Link from "next/link";
-import { TimelineTag } from "./getTags";
+import type { TimelineTag } from "@/app/timeline/components/getTags";
 
 type Post = Database["public"]["Tables"]["posts"]["Row"];
 
-export default async function KnowledgePost({
+export default async function AskPost({
     post_info,
     likeCount,
     liked,
@@ -37,8 +37,8 @@ export default async function KnowledgePost({
         .eq("id", post_info.user_id)
         .single();
 
-    const { data: postKnowledge, error: postKnowledgeError } = await supabase
-        .from("post_knowledge")
+    const { data: postAsk, error: postAskError } = await supabase
+        .from("post_ask")
         .select("*")
         .eq("post_id", post_info.post_id)
         .maybeSingle();
@@ -47,11 +47,11 @@ export default async function KnowledgePost({
         console.error("author fetch failed:", authorError);
     }
 
-    if (postKnowledgeError) {
-        console.error("post_knowledge fetch failed:", postKnowledgeError);
+    if (postAskError) {
+        console.error("post_ask fetch failed:", postAskError);
     }
 
-    const record = { ...post_info, ...postKnowledge };
+    const record = { ...post_info, ...postAsk };
 
     return (
         <div className="relative">
@@ -62,14 +62,14 @@ export default async function KnowledgePost({
                 <PostTime createdAt={record.created_at} />
             </Link>
             <div>
-                <p>{record.contents}</p>
+                <p>{record.question}</p>
             </div>
             {record.note && <p>{record.note}</p>}
             <PostImage src={await signPostImage(supabase, post_info.image)} />
             {tags ?
-            (<ul>
-            {tags.map((tag)=>(<li key={tag.id}>{tag.name}</li>))}
-            </ul>)
+                (<ul>
+                    {tags.map((tag)=>(<li key={tag.id}>{tag.name}</li>))}
+                </ul>)
             : null}
             <Like postId={post_info.post_id} count={likeCount} liked={liked} />
             <Comments postId={post_info.post_id} comments={comments} />

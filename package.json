@@ -8,7 +8,7 @@
     "start": "next start",
     "lint": "eslint",
     "typecheck": "tsc --noEmit -p tsconfig.typecheck.json",
-    "db:types": "npx supabase@latest gen types typescript --project-id vssumrutrexcmlyvigqg --schema public > lib/database.types.ts",
+    "db:types": "node supabase/tools/gen-types.mjs",
     "db:new": "npx supabase@latest migration new",
     "db:push": "npx supabase@latest db push",
     "db:baseline": "node supabase/tools/dump-schema.mjs"

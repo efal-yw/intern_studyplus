@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
-import Header from "./_components/Header";
+
 import Sidebar from "./_components/Sidebar";
 import "./globals.css";
 
@@ -28,7 +28,6 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       <body className="flex min-h-full">
         <Sidebar />
         <div className="flex min-w-0 flex-1 flex-col">
-          <Header />
           <main className="flex flex-1 flex-col">{children}</main>
         </div>
       </body>

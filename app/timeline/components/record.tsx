@@ -111,8 +111,8 @@ export default async function RecordPost({
               ))}
             </ul>
           ) : null}
-          <Like postId={post_info.post_id} count={likeCount} liked={liked} />
         </Link>
+        <Like postId={post_info.post_id} count={likeCount} liked={liked} />
       </div>
     </div>
   );

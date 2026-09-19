@@ -77,8 +77,8 @@ export default async function KnowledgePost({
             ))}
           </ul>
         ) : null}
-        <Like postId={post_info.post_id} count={likeCount} liked={liked} />
       </Link>
+      <Like postId={post_info.post_id} count={likeCount} liked={liked} />
     </div>
   );
 }

@@ -15,64 +15,69 @@ import type { TimelineTag } from "@/app/timeline/components/getTags";
 type Post = Database["public"]["Tables"]["posts"]["Row"];
 
 export default async function KnowledgePost({
-    post_info,
-    likeCount,
-    liked,
-    comments,
-    tags
+  post_info,
+  likeCount,
+  liked,
+  comments,
+  tags,
 }: {
-    post_info: Post;
-    likeCount: number;
-    liked: boolean;
-    comments: TimelineComment[];
-    tags: TimelineTag[];
+  post_info: Post;
+  likeCount: number;
+  liked: boolean;
+  comments: TimelineComment[];
+  tags: TimelineTag[];
 }) {
-    const supabase = await createClient();
-    const viewer = await getCurrentUser();
-    const isOwnPost = viewer?.id === post_info.user_id;
+  const supabase = await createClient();
+  const viewer = await getCurrentUser();
+  const isOwnPost = viewer?.id === post_info.user_id;
 
-    const { data: author, error: authorError } = await supabase
-        .from("users")
-        .select("name, avatar_path")
-        .eq("id", post_info.user_id)
-        .single();
+  const { data: author, error: authorError } = await supabase
+    .from("users")
+    .select("name, avatar_path")
+    .eq("id", post_info.user_id)
+    .single();
 
-    const { data: postKnowledge, error: postKnowledgeError } = await supabase
-        .from("post_knowledge")
-        .select("*")
-        .eq("post_id", post_info.post_id)
-        .maybeSingle();
+  const { data: postKnowledge, error: postKnowledgeError } = await supabase
+    .from("post_knowledge")
+    .select("*")
+    .eq("post_id", post_info.post_id)
+    .maybeSingle();
 
-    if (authorError) {
-        console.error("author fetch failed:", authorError);
-    }
+  if (authorError) {
+    console.error("author fetch failed:", authorError);
+  }
 
-    if (postKnowledgeError) {
-        console.error("post_knowledge fetch failed:", postKnowledgeError);
-    }
+  if (postKnowledgeError) {
+    console.error("post_knowledge fetch failed:", postKnowledgeError);
+  }
 
-    const record = { ...post_info, ...postKnowledge };
+  const record = { ...post_info, ...postKnowledge };
 
-    return (
-        <div className="relative">
-            {isOwnPost && <DeletePost postId={post_info.post_id} />}
-            <Link href={`/users/${post_info.user_id}`} className="flex items-center gap-2">
-                <Avatar avatarPath={author?.avatar_path} />
-                <p>{author?.name}</p>
-                <PostTime createdAt={record.created_at} />
-            </Link>
-            <div>
-                <p>{record.contents}</p>
-            </div>
-            {record.note && <p>{record.note}</p>}
-            <PostImage src={await signPostImage(supabase, post_info.image)} />
-            {tags ?
-            (<ul>
-            {tags.map((tag)=>(<li key={tag.id}>{tag.name}</li>))}
-            </ul>)
-            : null}
-            <Like postId={post_info.post_id} count={likeCount} liked={liked} />
-            <Comments postId={post_info.post_id} comments={comments} />
-        </div>
-    );
-};
+  return (
+    <div className="relative">
+      {isOwnPost && <DeletePost postId={post_info.post_id} />}
+      <Link
+        href={`/users/${post_info.user_id}`}
+        className="flex items-center gap-2"
+      >
+        <Avatar avatarPath={author?.avatar_path} />
+        <p>{author?.name}</p>
+        <PostTime createdAt={record.created_at} />
+      </Link>
+      <div>
+        <p>{record.contents}</p>
+      </div>
+      {record.note && <p>{record.note}</p>}
+      <PostImage src={await signPostImage(supabase, post_info.image)} />
+      {tags ? (
+        <ul>
+          {tags.map((tag) => (
+            <li key={tag.id}>{tag.name}</li>
+          ))}
+        </ul>
+      ) : null}
+      <Like postId={post_info.post_id} count={likeCount} liked={liked} />
+      <Comments postId={post_info.post_id} comments={comments} />
+    </div>
+  );
+}

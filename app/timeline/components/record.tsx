@@ -4,6 +4,7 @@ import PostTime from "./postTime";
 import Like from "./like";
 import Comments from "./comment";
 import type { TimelineComment } from "./getComments";
+import { getTags, type TimelineTag } from "./getTags";
 import Avatar from "@/app/_components/Avatar";
 import { signPostImage } from "@/lib/post-image";
 import { getCurrentUser } from "@/lib/auth/current-user";
@@ -17,7 +18,7 @@ export default async function RecordPost({
     post_info,
     likeCount,
     liked,
-    comments,
+    comments
 }: {
     post_info: Post;
     likeCount: number;
@@ -72,6 +73,7 @@ export default async function RecordPost({
     const textbookLabel = postRecord
         ? (textbook?.name ?? "削除された教材")
         : null;
+
 
     return (
         <div className="relative">

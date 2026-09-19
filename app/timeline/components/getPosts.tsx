@@ -61,6 +61,8 @@ export async function getPosts(postType?: PostType, scope: Scope = "all") {
   // 投稿がまだ無い/30件に満たない場合も null にはならないが、念のため空配列にフォールバック
   const allPosts = posts ?? [];
 
+  
+
   if (!postType) {
     return allPosts;
   }

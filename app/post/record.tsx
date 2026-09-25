@@ -82,19 +82,19 @@ export default async function RecordPost({
       {isOwnPost && <DeletePost postId={post_info.post_id} />}
       <Link
         href={`/users/${post_info.user_id}`}
-        className="flex items-start gap-2"
+        className="flex items-start m-1"
       >
         <Avatar avatarPath={author?.avatar_path} />
       </Link>
       <div className="flex-col">
         <Link
           href={`/users/${post_info.user_id}`}
-          className="flex items-center gap-2"
+          className="flex items-center gap-4"
         >
           <p>{author?.name}</p>
           <PostTime createdAt={record.created_at} />
         </Link>
-        <div className="flex flex-col rounded-md bg-zinc-100">
+        <div className="flex flex-col rounded-md bg-zinc-100 p-1 m-1">
           {textbookLabel && <div className="font-bold">{textbookLabel}</div>}
           {record.hours != null && record.minutes != null ? (
             <p>
@@ -102,7 +102,7 @@ export default async function RecordPost({
             </p>
           ) : null}
         </div>
-        {record.note && <p>{record.note}</p>}
+        {record.note && <p className="m-1">{record.note}</p>}
         <PostImage src={await signPostImage(supabase, post_info.image)} />
         {tags ? (
           <ul>

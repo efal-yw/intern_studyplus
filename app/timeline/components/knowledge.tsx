@@ -57,17 +57,17 @@ export default async function KnowledgePost({
       {isOwnPost && <DeletePost postId={post_info.post_id} />}
       <Link
         href={`/users/${post_info.user_id}`}
-        className="flex items-center gap-2"
+        className="flex items-center gap-4 m-1"
       >
         <Avatar avatarPath={author?.avatar_path} />
         <p>{author?.name}</p>
         <PostTime createdAt={record.created_at} />
       </Link>
       <Link href={`/post/${post_info.post_id}`}>
-        <div>
+        <div className="m-1">
           <p>{record.contents}</p>
         </div>
-        {record.note && <p>{record.note}</p>}
+        {record.note && <p className="m-1">{record.note}</p>}
         <PostImage src={await signPostImage(supabase, post_info.image)} />
         {tags ? (
           <ul>

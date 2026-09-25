@@ -29,7 +29,7 @@ export default function Sidebar({
           <Link
             key={item.href}
             href={item.href}
-            className={`px-4 py-3 text-lg ${
+            className={`px-4 py-3 text-xl ${
               active ? "font-semibold text-black" : "text-zinc-500"
             }`}
           >

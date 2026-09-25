@@ -7,6 +7,7 @@ import Comments from "@/app/timeline/components/comment";
 import type { TimelineComment } from "@/app/timeline/components/getComments";
 import type { TimelineTag } from "@/app/timeline/components/getTags";
 import Avatar from "@/app/_components/Avatar";
+import TextbookIcon from "@/app/_components/TextbookIcon";
 import { signPostImage } from "@/lib/post-image";
 import { getCurrentUser } from "@/lib/auth/current-user";
 import PostImage from "@/app/timeline/components/postImage";
@@ -61,7 +62,7 @@ export default async function RecordPost({
   const { data: textbook, error: textbookError } = record.textbook
     ? await supabase
         .from("textbook")
-        .select("name")
+        .select("name, icon_path")
         .eq("id", record.textbook)
         .maybeSingle()
     : { data: null, error: null };
@@ -94,13 +95,30 @@ export default async function RecordPost({
           <p>{author?.name}</p>
           <PostTime createdAt={record.created_at} />
         </Link>
-        <div className="flex flex-col rounded-md bg-zinc-100 p-1 m-1">
-          {textbookLabel && <div className="font-bold">{textbookLabel}</div>}
-          {record.hours != null && record.minutes != null ? (
-            <p>
-              <b>{record.hours}</b>時間<b>{record.minutes}</b>分
-            </p>
-          ) : null}
+        <div className="flex rounded-md bg-zinc-100 p-1 m-1">
+          {textbookLabel && (
+            <>
+              {textbook && (
+                <TextbookIcon iconPath={textbook.icon_path} size={64} />
+              )}
+            </>
+          )}
+          <div className="flex flex-col p-1 m-1">
+            {textbookLabel && (
+              <>
+                <div className="font-bold">
+                  {/* 教材が削除されていると textbook ごと null になるので、
+                    その場合はラベルだけ出す */}
+                  {textbookLabel}
+                </div>
+              </>
+            )}
+            {record.hours != null && record.minutes != null ? (
+              <p>
+                <b>{record.hours}</b>時間<b>{record.minutes}</b>分
+              </p>
+            ) : null}
+          </div>
         </div>
         {record.note && <p className="m-1">{record.note}</p>}
         <PostImage src={await signPostImage(supabase, post_info.image)} />

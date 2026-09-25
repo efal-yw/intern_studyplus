@@ -53,7 +53,7 @@ export default async function KnowledgePost({
   const record = { ...post_info, ...postKnowledge };
 
   return (
-    <div className="relative flex">
+    <div className="relative flex p-1">
       {isOwnPost && <DeletePost postId={post_info.post_id} />}
       <Link
         href={`/users/${post_info.user_id}`}

@@ -55,34 +55,41 @@ export default async function KnowledgePost({
   const record = { ...post_info, ...postKnowledge };
 
   return (
-    <div className="relative">
+    <div className="relative flex">
       {isOwnPost && <DeletePost postId={post_info.post_id} />}
       <Link
         href={`/users/${post_info.user_id}`}
-        className="flex items-center gap-4 m-1"
+        className="flex items-start m-1"
       >
         <Avatar avatarPath={author?.avatar_path} />
-        <p>{author?.name}</p>
-        <PostTime createdAt={record.created_at} />
       </Link>
-      <div className="m-1">
-        <p>{record.contents}</p>
+      <div className="flex-col">
+        <Link
+          href={`/users/${post_info.user_id}`}
+          className="flex items-center gap-4"
+        >
+          <p>{author?.name}</p>
+          <PostTime createdAt={record.created_at} />
+        </Link>
+        <div className="m-1">
+          <p>{record.contents}</p>
+        </div>
+        {record.note && <p className="m-1">{record.note}</p>}
+        <PostImage src={await signPostImage(supabase, post_info.image)} />
+        {tags ? (
+          <ul>
+            {tags.map((tag) => (
+              <li key={tag.id}>{tag.name}</li>
+            ))}
+          </ul>
+        ) : null}
+        <div className="flex items-center gap-4">
+          <Like postId={post_info.post_id} count={likeCount} liked={liked} />
+          {/* 一覧と違いコメントは既に取得済みなので、その件数をそのまま出す。 */}
+          <CommentCount count={comments.length} />
+        </div>
+        <Comments postId={post_info.post_id} comments={comments} />
       </div>
-      {record.note && <p className="m-1">{record.note}</p>}
-      <PostImage src={await signPostImage(supabase, post_info.image)} />
-      {tags ? (
-        <ul>
-          {tags.map((tag) => (
-            <li key={tag.id}>{tag.name}</li>
-          ))}
-        </ul>
-      ) : null}
-      <div className="flex items-center gap-4">
-        <Like postId={post_info.post_id} count={likeCount} liked={liked} />
-        {/* 一覧と違いコメントは既に取得済みなので、その件数をそのまま出す。 */}
-        <CommentCount count={comments.length} />
-      </div>
-      <Comments postId={post_info.post_id} comments={comments} />
     </div>
   );
 }

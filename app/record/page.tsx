@@ -1,3 +1,4 @@
+import Image from "next/image";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import type { User } from "@supabase/supabase-js";
@@ -13,73 +14,132 @@ import {
 
 type SupabaseServerClient = Awaited<ReturnType<typeof createClient>>;
 
-// 実スキーマから引く。id は uuid なので number ではなく string
-type Textbook = Pick<Tables<"textbook">, "id" | "name" | "category">;
+// icon_path は "<バケット名>/<バケット内のパス>" の形で持つ (例: "images/blue.png")。
+// バケットをコード側で固定しないので、あとからアイコンを別バケットに置いても
+// この関数を直さずに済む。
+//
+// public バケットの公開URLがちょうど同じ並びなので、前に固定部分を足すだけでよい。
+// getPublicUrl() と違って通信も認証もしないため、Server / Client どちらからでも
+// await 無しで呼べる。URL の形は next.config.ts の remotePatterns と対。
+//
+// Storage の API (upload / remove / createSignedUrl) はバケットとパスを別々の
+// 引数で受け取るので、そちらを書くときは最初の "/" で分ける。バケット名に "/" は
+// 使えないので、1回目の "/" で切れば必ず正しく分かれる。
+function iconUrl(iconPath: string) {
+  const base = process.env.NEXT_PUBLIC_SUPABASE_URL!;
+  return `${base}/storage/v1/object/public/${iconPath}`;
+}
 
-// [カテゴリー名, カテゴリーID, そのカテゴリーの教材一覧]
-type CategoryWithTextbooks = [string | null, string, Textbook[]];
+// 実スキーマから引く。id は uuid なので number ではなく string
+type Textbook = Pick<
+  Tables<"textbook">,
+  "id" | "name" | "category" | "icon_path"
+>;
+
+type CategoryWithTextbooks = {
+  id: string;
+  name: string | null;
+  textbooks: Textbook[];
+};
 
 // user_id も条件に入れる。category_textbook 側は自分の行しか引いていないので
 // 通常ここに他人のカテゴリIDは来ないが、textbook の RLS がどうなっていても
 // 「自分の教材しか出ない」が成立するようにしておく。
-async function Record_by_category(
-  textbook_category_id: string,
+async function fetchCategoriesWithTextbooks(
   userId: string,
   supabase: SupabaseServerClient,
-): Promise<Textbook[]> {
-  const { data: textbooks_by_category } = await supabase
+): Promise<CategoryWithTextbooks[]> {
+  const { data: categories, error: categoriesError } = await supabase
+    .from("category_textbook")
+    .select("id, category_name")
+    .eq("user_id", userId);
+
+  if (categoriesError) {
+    console.error("failed to fetch textbook categories:", categoriesError);
+    return [];
+  }
+
+  if (!categories || categories.length === 0) {
+    return [];
+  }
+
+  // カテゴリごとに1本ずつ投げると N+1 になるので、まとめて1回で取ってから
+  // JS 側で束ね直す。
+  const { data: textbooks, error: textbooksError } = await supabase
     .from("textbook")
     .select("id, name, category, icon_path")
-    .eq("category", textbook_category_id)
+    .in(
+      "category",
+      categories.map((category) => category.id),
+    )
     .eq("user_id", userId);
-  //retrieve textbooks by category
 
-  return textbooks_by_category ?? [];
+  if (textbooksError) {
+    // カテゴリだけは出せるので、教材が0件の状態で描画を続ける
+    console.error("failed to fetch textbooks:", textbooksError);
+  }
+
+  const byCategory = new Map<string, Textbook[]>();
+  for (const textbook of textbooks ?? []) {
+    if (!textbook.category) {
+      continue;
+    }
+    const bucket = byCategory.get(textbook.category);
+    if (bucket) {
+      bucket.push(textbook);
+    } else {
+      byCategory.set(textbook.category, [textbook]);
+    }
+  }
+
+  return categories.map((category) => ({
+    id: category.id,
+    name: category.category_name,
+    textbooks: byCategory.get(category.id) ?? [],
+  }));
+}
+
+function CategorySection({
+  category,
+  user,
+}: {
+  category: CategoryWithTextbooks;
+  user: User;
+}) {
+  return (
+    <div className="flex flex-col items-start justify-start gap-3">
+      <div className="flex w-full items-center justify-between">
+        <h2>{category.name}</h2>
+        <EditModeVisible>
+          <AddTextbook user={user} category={category.id} />
+        </EditModeVisible>
+      </div>
+
+      <div className="grid grid-cols-4">
+        {category.textbooks.map((textbook) => (
+          <Link key={textbook.id} href={`/record/${textbook.id}`}>
+            {/* 隣に教材名が出ているので alt は空にする(読み上げの重複を避ける) */}
+            <Image
+              src={iconUrl(textbook.icon_path)}
+              alt=""
+              width={64}
+              height={64}
+            />
+            {textbook.name}
+          </Link>
+        ))}
+      </div>
+    </div>
+  );
 }
 
 async function RecordList(user: User, supabase: SupabaseServerClient) {
-  const { data: textbook_categories } = await supabase
-    .from("category_textbook")
-    .select("id, category_name")
-    .eq("user_id", user.id);
-  // retrieve categories of textbooks
-
-  const category_and_textbooks: CategoryWithTextbooks[] = await Promise.all(
-    (textbook_categories ?? []).map(
-      async (category): Promise<CategoryWithTextbooks> => [
-        category.category_name,
-        category.id,
-        await Record_by_category(category.id, user.id, supabase),
-      ],
-    ),
-  );
-
-  function ShowItems({ items }: { items: CategoryWithTextbooks }) {
-    return (
-      <div className="flex flex-col items-start justify-start gap-3">
-        <div className="flex w-full items-center justify-between">
-          <label>{items[0]}</label>
-          <EditModeVisible>
-            <AddTextbook user={user} category={items[1]} />
-          </EditModeVisible>
-        </div>
-
-        <div className="grid grid-cols-4">
-          {items[2].map((textbook) => (
-            <Link key={textbook.id} href={`/record/${textbook.id}`}>
-              <Image src={textbook.icon_path} />
-              {textbook.name}
-            </Link>
-          ))}
-        </div>
-      </div>
-    );
-  }
+  const categories = await fetchCategoriesWithTextbooks(user.id, supabase);
 
   return (
     <>
-      {category_and_textbooks.map((items, index) => (
-        <ShowItems key={index} items={items} />
+      {categories.map((category) => (
+        <CategorySection key={category.id} category={category} user={user} />
       ))}
     </>
   );

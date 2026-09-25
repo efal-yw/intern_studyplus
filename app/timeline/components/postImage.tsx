@@ -16,7 +16,7 @@ export default function PostImage({ src }: { src: string | null }) {
   }
 
   return (
-    <div className="relative aspect-video w-full max-w-md">
+    <div className="relative aspect-video w-full max-w-md m-1">
       <Image
         src={src}
         alt="投稿の画像"

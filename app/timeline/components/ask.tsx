@@ -61,7 +61,7 @@ export default async function AskPost({
       >
         <Avatar avatarPath={author?.avatar_path} />
       </Link>
-      <div className="flex-col">
+      <div className="flex flex-col">
         <Link
           href={`/users/${post_info.user_id}`}
           className="flex items-center gap-4"

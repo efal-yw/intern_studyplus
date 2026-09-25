@@ -3,10 +3,13 @@ import { redirect } from "next/navigation";
 import type { User } from "@supabase/supabase-js";
 import { createClient } from "@/lib/supabase/server";
 import type { Tables } from "@/lib/database.types";
-import AddCategory from "./AddCategory"
-import AddTextbook from "./AddTextbook"
-import { EditModeProvider, EditToggleButton, EditModeVisible } from "./EditMode"
-
+import AddCategory from "./AddCategory";
+import AddTextbook from "./AddTextbook";
+import {
+  EditModeProvider,
+  EditToggleButton,
+  EditModeVisible,
+} from "./EditMode";
 
 type SupabaseServerClient = Awaited<ReturnType<typeof createClient>>;
 
@@ -24,9 +27,9 @@ async function Record_by_category(
   userId: string,
   supabase: SupabaseServerClient,
 ): Promise<Textbook[]> {
-  const { data: textbooks_by_category }  = await supabase
+  const { data: textbooks_by_category } = await supabase
     .from("textbook")
-    .select("id, name, category")
+    .select("id, name, category, icon_path")
     .eq("category", textbook_category_id)
     .eq("user_id", userId);
   //retrieve textbooks by category
@@ -34,14 +37,12 @@ async function Record_by_category(
   return textbooks_by_category ?? [];
 }
 
-
 async function RecordList(user: User, supabase: SupabaseServerClient) {
-  const { data: textbook_categories }  = await supabase
+  const { data: textbook_categories } = await supabase
     .from("category_textbook")
     .select("id, category_name")
     .eq("user_id", user.id);
   // retrieve categories of textbooks
-
 
   const category_and_textbooks: CategoryWithTextbooks[] = await Promise.all(
     (textbook_categories ?? []).map(
@@ -49,29 +50,31 @@ async function RecordList(user: User, supabase: SupabaseServerClient) {
         category.category_name,
         category.id,
         await Record_by_category(category.id, user.id, supabase),
-      ]
-    )
+      ],
+    ),
   );
 
   function ShowItems({ items }: { items: CategoryWithTextbooks }) {
     return (
-     <div className="flex flex-col items-start justify-start gap-3">
-      <div className="flex w-full items-center justify-between">
-       <label>{items[0]}</label>
-       <EditModeVisible>
-         <AddTextbook user={user} category={items[1]} />
-       </EditModeVisible>
-       </div>
+      <div className="flex flex-col items-start justify-start gap-3">
+        <div className="flex w-full items-center justify-between">
+          <label>{items[0]}</label>
+          <EditModeVisible>
+            <AddTextbook user={user} category={items[1]} />
+          </EditModeVisible>
+        </div>
 
         <div className="grid grid-cols-4">
           {items[2].map((textbook) => (
-            <Link key={textbook.id} href={`/record/${textbook.id}`} >{textbook.name}</Link>
+            <Link key={textbook.id} href={`/record/${textbook.id}`}>
+              <Image src={textbook.icon_path} />
+              {textbook.name}
+            </Link>
           ))}
         </div>
-     </div>
+      </div>
     );
   }
-
 
   return (
     <>
@@ -81,9 +84,6 @@ async function RecordList(user: User, supabase: SupabaseServerClient) {
     </>
   );
 }
-
-
-
 
 export default async function RecordPage() {
   const supabase = await createClient();

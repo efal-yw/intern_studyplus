@@ -18,7 +18,7 @@ export default function Sidebar({
   }
 
   return (
-    <nav className="sticky top-0 flex items-center h-dvh w-[20%] shrink-0 flex-col border-r border-black/[.08] bg-white">
+    <nav className="sticky top-0 flex items-center h-dvh w-[20%] shrink-0 flex-col border-r border-black/[.08] bg-white ">
       <Link href="./mypage" className="p-2">
         <Avatar avatarPath={avatarPath} />
       </Link>
@@ -29,7 +29,7 @@ export default function Sidebar({
           <Link
             key={item.href}
             href={item.href}
-            className={`px-4 py-3 text-sm ${
+            className={`px-4 py-3 text-lg ${
               active ? "font-semibold text-black" : "text-zinc-500"
             }`}
           >

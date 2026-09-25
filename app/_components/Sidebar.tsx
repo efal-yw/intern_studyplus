@@ -19,7 +19,7 @@ export default function Sidebar({
 
   return (
     <nav className="sticky top-0 flex items-center h-dvh w-[20%] shrink-0 flex-col border-r border-black/[.08] bg-white">
-      <Link href="./mypage">
+      <Link href="./mypage" className="p-2">
         <Avatar avatarPath={avatarPath} />
       </Link>
       {NAV_ITEMS.map((item) => {

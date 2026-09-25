@@ -101,7 +101,11 @@ function CategorySection({
 
       <div className="grid grid-cols-4">
         {category.textbooks.map((textbook) => (
-          <Link key={textbook.id} href={`/record/${textbook.id}`}>
+          <Link
+            key={textbook.id}
+            href={`/record/${textbook.id}`}
+            className="text-xs flex flex-col items-center justify-center"
+          >
             {/* 隣に教材名が出ているので alt は空にする(読み上げの重複を避ける) */}
             <TextbookIcon iconPath={textbook.icon_path} size={64} />
             {textbook.name}

@@ -94,22 +94,30 @@ export default async function RecordPost({
           <PostTime createdAt={record.created_at} />
         </Link>
         <Link href={`/post/${post_info.post_id}`}>
-          <div className="flex flex-col rounded-md bg-zinc-100 p-1 m-1">
+          <div className="flex rounded-md bg-zinc-100 p-1 m-1">
             {textbookLabel && (
-              <div className="font-bold">
-                {/* 教材が削除されていると textbook ごと null になるので、
-                    その場合はラベルだけ出す */}
+              <>
                 {textbook && (
                   <TextbookIcon iconPath={textbook.icon_path} size={64} />
                 )}
-                {textbookLabel}
-              </div>
+              </>
             )}
-            {record.hours != null && record.minutes != null ? (
-              <p>
-                <b>{record.hours}</b>時間<b>{record.minutes}</b>分
-              </p>
-            ) : null}
+            <div className="flex flex-col p-1 m-1">
+              {textbookLabel && (
+                <>
+                  <div className="font-bold">
+                    {/* 教材が削除されていると textbook ごと null になるので、
+                      その場合はラベルだけ出す */}
+                    {textbookLabel}
+                  </div>
+                </>
+              )}
+              {record.hours != null && record.minutes != null ? (
+                <p>
+                  <b>{record.hours}</b>時間<b>{record.minutes}</b>分
+                </p>
+              ) : null}
+            </div>
           </div>
           {record.note && <p className="m-1">{record.note}</p>}
           <PostImage src={await signPostImage(supabase, post_info.image)} />

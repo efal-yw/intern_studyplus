@@ -54,7 +54,11 @@ export async function getPosts(postType?: PostType, scope: Scope = "all") {
     .limit(PAGE_SIZE);
 
   if (error) {
-    console.error("posts fetch failed:", error);
+    // オブジェクトをそのまま渡すと dev のエラーオーバーレイでは {} と表示されて
+    // 中身が読めないので、文字列に展開してから出す。
+    console.error(
+      `posts fetch failed: message=${error.message} code=${error.code} details=${error.details} hint=${error.hint}`,
+    );
     throw new Error(`posts fetch failed: ${error.message}`);
   }
 

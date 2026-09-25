@@ -5,6 +5,7 @@ import Like from "./like";
 import CommentCount from "./commentCount";
 import type { TimelineTag } from "./getTags";
 import Avatar from "@/app/_components/Avatar";
+import TextbookIcon from "@/app/_components/TextbookIcon";
 import { signPostImage } from "@/lib/post-image";
 import { getCurrentUser } from "@/lib/auth/current-user";
 import PostImage from "./postImage";
@@ -59,7 +60,7 @@ export default async function RecordPost({
   const { data: textbook, error: textbookError } = record.textbook
     ? await supabase
         .from("textbook")
-        .select("name")
+        .select("name, icon_path")
         .eq("id", record.textbook)
         .maybeSingle()
     : { data: null, error: null };
@@ -94,7 +95,16 @@ export default async function RecordPost({
         </Link>
         <Link href={`/post/${post_info.post_id}`}>
           <div className="flex flex-col rounded-md bg-zinc-100 p-1 m-1">
-            {textbookLabel && <div className="font-bold">{textbookLabel}</div>}
+            {textbookLabel && (
+              <div className="font-bold">
+                {/* 教材が削除されていると textbook ごと null になるので、
+                    その場合はラベルだけ出す */}
+                {textbook && (
+                  <TextbookIcon iconPath={textbook.icon_path} size={64} />
+                )}
+                {textbookLabel}
+              </div>
+            )}
             {record.hours != null && record.minutes != null ? (
               <p>
                 <b>{record.hours}</b>時間<b>{record.minutes}</b>分

@@ -1,9 +1,9 @@
-import Image from "next/image";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import type { User } from "@supabase/supabase-js";
 import { createClient } from "@/lib/supabase/server";
 import type { Tables } from "@/lib/database.types";
+import TextbookIcon from "@/app/_components/TextbookIcon";
 import AddCategory from "./AddCategory";
 import AddTextbook from "./AddTextbook";
 import {
@@ -13,22 +13,6 @@ import {
 } from "./EditMode";
 
 type SupabaseServerClient = Awaited<ReturnType<typeof createClient>>;
-
-// icon_path は "<バケット名>/<バケット内のパス>" の形で持つ (例: "images/blue.png")。
-// バケットをコード側で固定しないので、あとからアイコンを別バケットに置いても
-// この関数を直さずに済む。
-//
-// public バケットの公開URLがちょうど同じ並びなので、前に固定部分を足すだけでよい。
-// getPublicUrl() と違って通信も認証もしないため、Server / Client どちらからでも
-// await 無しで呼べる。URL の形は next.config.ts の remotePatterns と対。
-//
-// Storage の API (upload / remove / createSignedUrl) はバケットとパスを別々の
-// 引数で受け取るので、そちらを書くときは最初の "/" で分ける。バケット名に "/" は
-// 使えないので、1回目の "/" で切れば必ず正しく分かれる。
-function iconUrl(iconPath: string) {
-  const base = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-  return `${base}/storage/v1/object/public/${iconPath}`;
-}
 
 // 実スキーマから引く。id は uuid なので number ではなく string
 type Textbook = Pick<
@@ -119,12 +103,7 @@ function CategorySection({
         {category.textbooks.map((textbook) => (
           <Link key={textbook.id} href={`/record/${textbook.id}`}>
             {/* 隣に教材名が出ているので alt は空にする(読み上げの重複を避ける) */}
-            <Image
-              src={iconUrl(textbook.icon_path)}
-              alt=""
-              width={64}
-              height={64}
-            />
+            <TextbookIcon iconPath={textbook.icon_path} size={64} />
             {textbook.name}
           </Link>
         ))}

@@ -37,12 +37,8 @@ export default function Sidebar({
         );
       })}
       <Link href="./mypage" className="p-2 flex fixed bottom-0">
-        <Avatar avatarPath={avatarPath} />
-        {user && (
-          <div className="flex-colshrink">
-            <b>{user.name}</b>
-          </div>
-        )}
+        <Avatar avatarPath={avatarPath} className="m-2" />
+        {user && <b className="m-2 ">{user.name}</b>}
       </Link>
     </nav>
   );

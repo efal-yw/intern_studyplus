@@ -7,6 +7,7 @@ import type { TimelineTag } from "./getTags";
 import Avatar from "@/app/_components/Avatar";
 import TextbookIcon from "@/app/_components/TextbookIcon";
 import { signPostImage } from "@/lib/post-image";
+import { resolveTextbookIconUrl } from "@/lib/textbook-icon";
 import { getCurrentUser } from "@/lib/auth/current-user";
 import PostImage from "./postImage";
 import DeletePost from "./deletePost";
@@ -60,7 +61,7 @@ export default async function RecordPost({
   const { data: textbook, error: textbookError } = record.textbook
     ? await supabase
         .from("textbook")
-        .select("name, icons(icon_path)")
+        .select("name, icon_path")
         .eq("id", record.textbook)
         .maybeSingle()
     : { data: null, error: null };
@@ -98,7 +99,13 @@ export default async function RecordPost({
             {textbookLabel && (
               <>
                 {textbook && (
-                  <TextbookIcon iconPath={textbook.icons?.icon_path ?? null} size={64} />
+                  <TextbookIcon
+                    src={await resolveTextbookIconUrl(
+                      supabase,
+                      textbook.icon_path,
+                    )}
+                    size={64}
+                  />
                 )}
               </>
             )}

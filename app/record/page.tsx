@@ -100,9 +100,6 @@ function CategorySection({
     <div className="flex flex-col items-start justify-start gap-3">
       <div className="flex w-full items-center justify-between">
         <h2>{category.name}</h2>
-        <EditModeVisible>
-          <AddTextbook user={user} category={category.id} />
-        </EditModeVisible>
       </div>
 
       <div className="grid grid-cols-4">
@@ -117,6 +114,9 @@ function CategorySection({
             {textbook.name}
           </Link>
         ))}
+        <EditModeVisible>
+          <AddTextbook user={user} category={category.id} />
+        </EditModeVisible>
       </div>
     </div>
   );

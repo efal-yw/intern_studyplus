@@ -1,5 +1,12 @@
-"use client"
-import { useEffect, useMemo, useRef, useState, type ChangeEvent, type FormEvent } from "react"
+"use client";
+import {
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  type ChangeEvent,
+  type FormEvent,
+} from "react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
@@ -24,7 +31,13 @@ type IconOption = {
 /** モーダルを開いたときに選ばれた状態にしておくアイコン */
 const DEFAULT_ICON_PATH = `${SHARED_ICON_PREFIX}TextbookIconBlue.webp`;
 
-export default function AddTextbook({ user, category }: { user: User; category: string }) {
+export default function AddTextbook({
+  user,
+  category,
+}: {
+  user: User;
+  category: string;
+}) {
   const [isOpen, setIsOpen] = useState(false);
   const [inputText, setInputText] = useState("");
   // 圧縮後のファイルを持つ。投稿フォームの ImageInput と違い FormData ではなく
@@ -197,7 +210,11 @@ export default function AddTextbook({ user, category }: { user: User; category: 
     });
 
     if (insertError) {
-      console.error("AddTextbook insert error:", insertError.message, insertError);
+      console.error(
+        "AddTextbook insert error:",
+        insertError.message,
+        insertError,
+      );
       // 教材が残らなかったので、作ったアイコンは孤児になる。逆順に片付ける
       if (iconId) {
         await removeIconRow(supabase, iconId);
@@ -212,77 +229,98 @@ export default function AddTextbook({ user, category }: { user: User; category: 
 
     setIsSubmitting(false);
     close();
-    router.refresh()
+    router.refresh();
   };
 
   return (
     <>
-    <button onClick={()=>setIsOpen(true)}>教材を追加</button>
-    {isOpen && (
-      <div className="fixed inset-0 z-50 bg-black/50 flex justify-center items-center" onClick={close}>
-      <div onClick={(e) => e.stopPropagation()}>
-      <form onSubmit={handleSubmit} className="flex flex-col justify-center items-center gap-4 bg-white">
-        <label htmlFor="textbook-name">教材を追加</label>
-        <input id="textbook-name" type="text"
-        value={inputText}
-        onChange={(e)=>setInputText(e.target.value)}
-        required
-        placeholder="名前を入力"
+      <button
+        onClick={() => setIsOpen(true)}
+        className="flex flex-col items-center justify-center"
+      >
+        <Image
+          src="https://vssumrutrexcmlyvigqg.supabase.co/storage/v1/object/public/images/AddTextbook.webp"
+          alt="addButton"
+          width={64}
+          height={64}
         />
-        <div className="flex flex-col items-start gap-2">
-          <span>アイコン</span>
-          {isLoadingIcons && <p>アイコンを読み込み中...</p>}
-          <div className="grid grid-cols-4 gap-2">
-            {icons.map((icon) => (
-              <button
-                key={icon.id}
-                type="button"
-                onClick={() => selectIcon(icon.id)}
-                aria-pressed={selectedIconId === icon.id}
-                className={
-                  selectedIconId === icon.id
-                    ? "rounded border-2 border-blue-500"
-                    : "rounded border-2 border-transparent"
-                }
-              >
-                <TextbookIcon
-                  iconPath={icon.icon_path}
-                  size={48}
-                  alt={icon.name ?? ""}
+        <p className="text-xs">教材を追加する</p>
+      </button>
+      {isOpen && (
+        <div
+          className="fixed inset-0 z-50 bg-black/50 flex justify-center items-center"
+          onClick={close}
+        >
+          <div onClick={(e) => e.stopPropagation()}>
+            <form
+              onSubmit={handleSubmit}
+              className="flex flex-col justify-center items-center gap-4 bg-white"
+            >
+              <label htmlFor="textbook-name">教材を追加</label>
+              <input
+                id="textbook-name"
+                type="text"
+                value={inputText}
+                onChange={(e) => setInputText(e.target.value)}
+                required
+                placeholder="名前を入力"
+              />
+              <div className="flex flex-col items-start gap-2">
+                <span>アイコン</span>
+                {isLoadingIcons && <p>アイコンを読み込み中...</p>}
+                <div className="grid grid-cols-4 gap-2">
+                  {icons.map((icon) => (
+                    <button
+                      key={icon.id}
+                      type="button"
+                      onClick={() => selectIcon(icon.id)}
+                      aria-pressed={selectedIconId === icon.id}
+                      className={
+                        selectedIconId === icon.id
+                          ? "rounded border-2 border-blue-500"
+                          : "rounded border-2 border-transparent"
+                      }
+                    >
+                      <TextbookIcon
+                        iconPath={icon.icon_path}
+                        size={48}
+                        alt={icon.name ?? ""}
+                      />
+                    </button>
+                  ))}
+                </div>
+              </div>
+              <label className="flex items-center gap-2">
+                <span>新しい画像</span>
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/*"
+                  onChange={handleIconChange}
                 />
+              </label>
+              {isCompressing && <p>画像を処理中...</p>}
+              {preview && (
+                // blob: URL は最適化サーバーから取得できないので unoptimized
+                <Image
+                  src={preview}
+                  alt="アイコンのプレビュー"
+                  width={64}
+                  height={64}
+                  unoptimized
+                />
+              )}
+              {error && <p className="text-sm text-red-600">{error}</p>}
+              <button type="button" onClick={close}>
+                戻る
               </button>
-            ))}
+              <button type="submit" disabled={isCompressing || isSubmitting}>
+                {isSubmitting ? "保存中..." : "保存"}
+              </button>
+            </form>
           </div>
         </div>
-        <label className="flex items-center gap-2">
-          <span>新しい画像</span>
-          <input
-            ref={fileInputRef}
-            type="file"
-            accept="image/*"
-            onChange={handleIconChange}
-          />
-        </label>
-        {isCompressing && <p>画像を処理中...</p>}
-        {preview && (
-          // blob: URL は最適化サーバーから取得できないので unoptimized
-          <Image
-            src={preview}
-            alt="アイコンのプレビュー"
-            width={64}
-            height={64}
-            unoptimized
-          />
-        )}
-        {error && <p className="text-sm text-red-600">{error}</p>}
-        <button type="button" onClick={close}>戻る</button>
-        <button type="submit" disabled={isCompressing || isSubmitting}>
-          {isSubmitting ? "保存中..." : "保存"}
-        </button>
-      </form>
-      </div>
-      </div>
-    )}
+      )}
     </>
   );
 }

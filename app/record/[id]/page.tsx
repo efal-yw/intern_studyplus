@@ -21,6 +21,7 @@ import StudyTimeLength from "./studyTimeLength";
 import Comment from "../Comment";
 import Visibility from "../visibility";
 import TagsInput from "../tags";
+import TextbookIcon from "@/app/_components/TextbookIcon";
 
 // params という特殊な箱から、URLの [id] の部分を受け取る
 export default async function TextbookDetailPage({
@@ -136,7 +137,9 @@ export default async function TextbookDetailPage({
     if (tagIds.length > 0) {
       const { error: tagInsertError } = await supabase
         .from("post_tags")
-        .insert(tagIds.map((tagId) => ({ post_id: post.post_id, tag_id: tagId })));
+        .insert(
+          tagIds.map((tagId) => ({ post_id: post.post_id, tag_id: tagId })),
+        );
 
       if (tagInsertError) {
         console.error("post_tags insert failed:", tagInsertError);
@@ -178,26 +181,28 @@ export default async function TextbookDetailPage({
 
   return (
     <form action={handleSubmit}>
-    <div className="flex items-center gap-3 p-3">
-    <Link href="/record">戻る</Link>
-    <h1 className="grow text-center">記録の入力</h1>
-    <input type="submit" value="記録" />
-    </div>
-
-    <div className="flex flex-col justify-stretch gap-4 p-6">
-      <div className="flex items-center justify-center gap-2">
-      <p className="text-2xl font-bold text-zinc-800">
-        {textbook.name}
-      </p>
+      <div className="flex items-center gap-3 p-3">
+        <Link href="/record">戻る</Link>
+        <h1 className="grow text-center">記録の入力</h1>
+        <input type="submit" value="記録" />
       </div>
-      <Visibility />
-      <DateTimeInput />
-      <StudyTimeLength />
-      <Comment />
-      <TagsInput tagList={tagList} />
-      <ImageInput />
-    </div>
 
+      <div className="flex flex-col justify-stretch gap-4 p-6">
+        <div className="flex items-center justify-center gap-2">
+          <TextbookIcon
+            iconPath={textbook.icon_path}
+            alt={textbook.name}
+            size={48}
+          />
+          <p className="text-2xl font-bold text-zinc-800">{textbook.name}</p>
+        </div>
+        <Visibility />
+        <DateTimeInput />
+        <StudyTimeLength />
+        <Comment />
+        <TagsInput tagList={tagList} />
+        <ImageInput />
+      </div>
     </form>
   );
 }

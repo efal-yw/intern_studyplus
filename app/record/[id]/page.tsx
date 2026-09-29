@@ -56,7 +56,7 @@ export default async function TextbookDetailPage({
   //    「自分の教材でなければ 404」が成立する。
   const { data: textbook, error } = await supabase
     .from("textbook")
-    .select("*")
+    .select("*, icons(icon_path)")
     .eq("id", textbookId)
     .eq("user_id", userId)
     .single(); // 👈 1件だけ取得するための魔法のメソッド
@@ -190,7 +190,7 @@ export default async function TextbookDetailPage({
       <div className="flex flex-col justify-stretch gap-4 p-6">
         <div className="flex items-center justify-center gap-2">
           <TextbookIcon
-            iconPath={textbook.icon_path}
+            iconPath={textbook.icons?.icon_path ?? null}
             alt={textbook.name}
             size={48}
           />

@@ -51,3 +51,6 @@ export const AVATAR_LIMITS = { maxBytes: IMAGE_MAX_BYTES, maxEdge: 512 };
 
 /** 投稿画像。本文として読ませるので長辺はもう少し大きく取る */
 export const POST_IMAGE_LIMITS = { maxBytes: IMAGE_MAX_BYTES, maxEdge: 1280 };
+
+/** 教材アイコン。表示は 64px だが、拡大や高DPIを考えて 512px は残す */
+export const TEXTBOOK_ICON_LIMITS = { maxBytes: IMAGE_MAX_BYTES, maxEdge: 512 };

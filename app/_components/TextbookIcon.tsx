@@ -1,38 +1,35 @@
 import Image from "next/image";
+import { textbookIconUrl } from "@/lib/textbook-icon";
 
-// textbook.icon_path は "<バケット名>/<バケット内のパス>" の形で持つ
-// (例: "images/TextbookIconBlue.png")。バケットをコード側で固定しないので、
-// あとからアイコンを別バケットに置いてもこの関数を直さずに済む。
-//
-// public バケットの公開URLがちょうど同じ並びなので、前に固定部分を足すだけでよい。
-// getPublicUrl() と違って通信も認証もしないため、このコンポーネントは
-// Server / Client どちらからでも使えて、async にする必要も無い。
-// URL の形は next.config.ts の remotePatterns と対。
-//
-// Storage の API (upload / remove / createSignedUrl) はバケットとパスを別々の
-// 引数で受け取るので、そちらを書くときは最初の "/" で分ける。バケット名に "/" は
-// 使えないので、1回目の "/" で切れば必ず正しく分かれる。
-function iconUrl(iconPath: string) {
-  const base = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-  return `${base}/storage/v1/object/public/${iconPath}`;
-}
-
+/**
+ * 教材のアイコン。iconPath は icons.icon_path (バケット内のパス) をそのまま渡す。
+ *
+ * textbook_icons は public バケットなので、URL は文字列を組み立てるだけで作れる
+ * (通信も認証もしない)。そのためこのコンポーネントは同期関数のままで、
+ * Server / Client どちらからでも使える。
+ *
+ * アイコンが未設定 (textbook.icon が NULL) の場合は null が渡るので何も描かない。
+ */
 export default function TextbookIcon({
   iconPath,
   size = 64,
   alt = "",
   className = "",
 }: {
-  /** textbook.icon_path の値 */
-  iconPath: string;
+  /** icons.icon_path。未設定なら null */
+  iconPath: string | null;
   size?: number;
   /** 隣に教材名が出ている場合は既定の "" のままにする(読み上げの重複を避ける) */
   alt?: string;
   className?: string;
 }) {
+  if (!iconPath) {
+    return null;
+  }
+
   return (
     <Image
-      src={iconUrl(iconPath)}
+      src={textbookIconUrl(iconPath)}
       alt={alt}
       width={size}
       height={size}

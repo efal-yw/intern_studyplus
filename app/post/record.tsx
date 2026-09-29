@@ -62,7 +62,7 @@ export default async function RecordPost({
   const { data: textbook, error: textbookError } = record.textbook
     ? await supabase
         .from("textbook")
-        .select("name, icon_path")
+        .select("name, icons(icon_path)")
         .eq("id", record.textbook)
         .maybeSingle()
     : { data: null, error: null };
@@ -99,7 +99,7 @@ export default async function RecordPost({
           {textbookLabel && (
             <>
               {textbook && (
-                <TextbookIcon iconPath={textbook.icon_path} size={64} />
+                <TextbookIcon iconPath={textbook.icons?.icon_path ?? null} size={64} />
               )}
             </>
           )}

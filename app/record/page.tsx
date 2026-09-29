@@ -14,11 +14,11 @@ import {
 
 type SupabaseServerClient = Awaited<ReturnType<typeof createClient>>;
 
-// 実スキーマから引く。id は uuid なので number ではなく string
-type Textbook = Pick<
-  Tables<"textbook">,
-  "id" | "name" | "category" | "icon_path"
->;
+// 実スキーマから引く。id は uuid なので number ではなく string。
+// アイコンは icons テーブルに分かれたので、FK 経由で埋め込んだ形で持つ。
+type Textbook = Pick<Tables<"textbook">, "id" | "name" | "category"> & {
+  iconPath: string | null;
+};
 
 type CategoryWithTextbooks = {
   id: string;
@@ -51,7 +51,7 @@ async function fetchCategoriesWithTextbooks(
   // JS 側で束ね直す。
   const { data: textbooks, error: textbooksError } = await supabase
     .from("textbook")
-    .select("id, name, category, icon_path")
+    .select("id, name, category, icons(icon_path)")
     .in(
       "category",
       categories.map((category) => category.id),
@@ -68,11 +68,17 @@ async function fetchCategoriesWithTextbooks(
     if (!textbook.category) {
       continue;
     }
+    const entry: Textbook = {
+      id: textbook.id,
+      name: textbook.name,
+      category: textbook.category,
+      iconPath: textbook.icons?.icon_path ?? null,
+    };
     const bucket = byCategory.get(textbook.category);
     if (bucket) {
-      bucket.push(textbook);
+      bucket.push(entry);
     } else {
-      byCategory.set(textbook.category, [textbook]);
+      byCategory.set(textbook.category, [entry]);
     }
   }
 
@@ -107,7 +113,7 @@ function CategorySection({
             className="text-xs flex flex-col items-center justify-center"
           >
             {/* 隣に教材名が出ているので alt は空にする(読み上げの重複を避ける) */}
-            <TextbookIcon iconPath={textbook.icon_path} size={64} />
+            <TextbookIcon iconPath={textbook.iconPath} size={64} />
             {textbook.name}
           </Link>
         ))}

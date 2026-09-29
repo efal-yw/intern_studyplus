@@ -115,6 +115,27 @@ export type Database = {
           },
         ]
       }
+      icons: {
+        Row: {
+          created_at: string
+          icon_path: string | null
+          id: string
+          name: string | null
+        }
+        Insert: {
+          created_at?: string
+          icon_path?: string | null
+          id?: string
+          name?: string | null
+        }
+        Update: {
+          created_at?: string
+          icon_path?: string | null
+          id?: string
+          name?: string | null
+        }
+        Relationships: []
+      }
       likes: {
         Row: {
           created_at: string
@@ -329,7 +350,7 @@ export type Database = {
         Row: {
           category: string | null
           created_at: string
-          icon_path: string
+          icon: string | null
           id: string
           name: string
           user_id: string
@@ -337,7 +358,7 @@ export type Database = {
         Insert: {
           category?: string | null
           created_at?: string
-          icon_path?: string
+          icon?: string | null
           id?: string
           name: string
           user_id: string
@@ -345,7 +366,7 @@ export type Database = {
         Update: {
           category?: string | null
           created_at?: string
-          icon_path?: string
+          icon?: string | null
           id?: string
           name?: string
           user_id?: string
@@ -356,6 +377,13 @@ export type Database = {
             columns: ["category"]
             isOneToOne: false
             referencedRelation: "category_textbook"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "textbook_icon_fkey"
+            columns: ["icon"]
+            isOneToOne: false
+            referencedRelation: "icons"
             referencedColumns: ["id"]
           },
           {

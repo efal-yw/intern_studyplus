@@ -39,9 +39,8 @@ export default function Sidebar({
       <Link href="./mypage" className="p-2 flex fixed bottom-0">
         <Avatar avatarPath={avatarPath} />
         {user && (
-          <div>
+          <div className="flex-colshrink">
             <b>{user.name}</b>
-            <p className="text-zinc-500">{user.id}</p>
           </div>
         )}
       </Link>

@@ -58,8 +58,8 @@ export default function AddTextbook({
   const supabase = useMemo(() => createClient(), []);
 
   // 選べるアイコンは、プリセット (shared/) と自分がアップロードしたもの。
-  // この絞り込みは icons の RLS に書いた前方一致と同じ判定を、クエリ側でやっている
-  // (RLS の select は authenticated 全員に開いているので、絞るのはこちらの仕事)。
+  // RLS はこれに加えて「自分に見える教材が使っているアイコン」も返すので
+  // (他人の投稿でアイコンを出すため)、選択肢にはクエリ側でこの2つだけに絞る。
   useEffect(() => {
     if (!isOpen) {
       return;

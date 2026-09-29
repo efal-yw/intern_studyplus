@@ -23,30 +23,34 @@ export const metadata: Metadata = {
 
 // サイドバーのアバターは全ページ共通なので、ここでまとめて取得して渡す。
 // Sidebar が "use client" なのは usePathname のためだけで、データ取得は不要。
-async function getAvatarPath() {
-  const user = await getCurrentUser();
+async function getSidebarData() {
+  const authUser = await getCurrentUser();
 
-  if (!user) {
-    return null;
+  if (!authUser) {
+    return { avatarPath: null, user: null };
   }
 
   const supabase = await createClient();
   const { data, error } = await supabase
     .from("users")
-    .select("avatar_path")
-    .eq("id", user.id)
-    .single();
+    .select("id, name, avatar_path")
+    .eq("id", authUser.id)
+    .maybeSingle();
 
   if (error) {
-    console.error("avatar fetch failed:", error);
-    return null;
+    console.error("sidebar user fetch failed:", error);
   }
 
-  return data?.avatar_path ?? null;
+  return {
+    avatarPath: data?.avatar_path ?? null,
+    user: data
+      ? { id: data.id, name: data.name }
+      : { id: authUser.id, name: "" },
+  };
 }
 
 export default async function RootLayout({ children }: LayoutProps<"/">) {
-  const avatarPath = await getAvatarPath();
+  const { avatarPath, user } = await getSidebarData();
 
   return (
     <html
@@ -54,7 +58,7 @@ export default async function RootLayout({ children }: LayoutProps<"/">) {
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
       <body className="flex min-h-full">
-        <Sidebar avatarPath={avatarPath} />
+        <Sidebar avatarPath={avatarPath} user={user} />
         <div className="flex min-w-0 flex-1 flex-col">
           <main className="flex flex-1 flex-col">{children}</main>
         </div>

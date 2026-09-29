@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import Avatar from "./Avatar";
 import { AUTH_PATH, NAV_ITEMS } from "../_lib/navigation";
+import Image from "next/image";
 
 export default function Sidebar({
   avatarPath,
@@ -21,6 +22,7 @@ export default function Sidebar({
 
   return (
     <nav className="sticky top-0 flex items-center h-dvh w-[20%] shrink-0 flex-col border-r border-black/[.08] bg-white ">
+      <Image src="/favicon.ico" alt="icon" width={64} height={64} />
       {NAV_ITEMS.map((item) => {
         const active = pathname === item.href;
 

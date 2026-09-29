@@ -7,7 +7,7 @@ import type { Scope } from "./getPosts";
 // 表示範囲の選択肢。value は getPosts の Scope と一致する
 // (増やすと Scope 側の型エラーで気づける)
 const SCOPE_OPTIONS: ReadonlyArray<{ value: Scope; label: string }> = [
-  { value: "all", label: "すべて" },
+  { value: "all", label: "おすすめ" },
   { value: "following", label: "フォロー中" },
   { value: "mine", label: "自分" },
 ];

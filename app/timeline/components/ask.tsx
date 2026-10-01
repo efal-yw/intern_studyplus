@@ -66,7 +66,7 @@ export default async function AskPost({
           href={`/users/${post_info.user_id}`}
           className="flex items-center gap-4"
         >
-          <p>{author?.name}</p>
+          <p className=" font-bold">{author?.name}</p>
           <PostTime createdAt={record.created_at} />
         </Link>
         <Link href={`/post/${post_info.post_id}`}>

@@ -39,7 +39,7 @@ export default function UserTags({ userId }: { userId: string }) {
             {tag.tags?.name}
           </span>
         ))}
-        {!tags && (
+        {tags.length === 0 && (
           <span className="text-sm text-zinc-500">タグは未設定です</span>
         )}
       </div>

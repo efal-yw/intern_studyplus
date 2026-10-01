@@ -7,6 +7,7 @@ import { createClient } from "@/lib/supabase/client";
 import Link from "next/link";
 import { FollowButton } from "../follow";
 import { toggleFollow } from "../followActions";
+import { UserTags } from "../user_tags";
 
 type Profile = {
   name: string | null;
@@ -171,6 +172,8 @@ export default function UserProfilePage(){
         <StatusMessage profile={profile} />
         <ProfileStats profile={profile} />
       </div>
+
+      <UserTags userId={id} />
 
       <Link href="/" >x</Link>
 

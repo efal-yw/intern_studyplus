@@ -395,6 +395,36 @@ export type Database = {
           },
         ]
       }
+      user_tag: {
+        Row: {
+          tag_id: string
+          user_id: string
+        }
+        Insert: {
+          tag_id?: string
+          user_id?: string
+        }
+        Update: {
+          tag_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_tag_tag_id_fkey"
+            columns: ["tag_id"]
+            isOneToOne: false
+            referencedRelation: "tags"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "user_tag_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       users: {
         Row: {
           avatar_path: string | null

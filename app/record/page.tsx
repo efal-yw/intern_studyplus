@@ -11,6 +11,11 @@ import {
   EditToggleButton,
   EditModeVisible,
 } from "./EditMode";
+import {
+  MessageCircleQuestionMark,
+  BookOpenText,
+  Bookmark,
+} from "lucide-react";
 
 type SupabaseServerClient = Awaited<ReturnType<typeof createClient>>;
 
@@ -98,8 +103,9 @@ function CategorySection({
 }) {
   return (
     <div className="flex flex-col items-start justify-start gap-3">
-      <div className="flex w-full items-center justify-between">
-        <h2>{category.name}</h2>
+      <div className="flex w-full items-center justify-start gap-2">
+        <Bookmark />
+        <h2 className="font-bold">{category.name}</h2>
       </div>
 
       <div className="grid grid-cols-4">
@@ -107,7 +113,7 @@ function CategorySection({
           <Link
             key={textbook.id}
             href={`/record/${textbook.id}`}
-            className="text-xs flex flex-col items-center justify-center"
+            className="text-xs flex flex-col items-center justify-center gap-2"
           >
             {/* 隣に教材名が出ているので alt は空にする(読み上げの重複を避ける) */}
             <TextbookIcon iconPath={textbook.iconPath} size={64} />
@@ -158,8 +164,14 @@ export default async function RecordPage() {
           <EditToggleButton />
         </div>
         <div className="flex flex-col gap-3">
-          <Link href="/record/ask">ask</Link>
-          <Link href="/record/knowledge">knowledge</Link>
+          <Link href="/record/ask" className="font-bold flex gap-2">
+            <MessageCircleQuestionMark />
+            ask
+          </Link>
+          <Link href="/record/knowledge" className="font-bold flex gap-2">
+            <BookOpenText />
+            knowledge
+          </Link>
         </div>
         {await RecordList(user, supabase)}
         <EditModeVisible>

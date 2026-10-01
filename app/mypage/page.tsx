@@ -8,6 +8,7 @@ import { AVATAR_LIMITS, compressImage } from "@/lib/image";
 import { IMAGE_MIME } from "@/lib/post-form";
 import Avatar from "../_components/Avatar";
 import SignOutButton from "../_components/SignOutButton";
+import UserTags from "./user_tags";
 
 type Profile = {
   name: string | null;
@@ -48,7 +49,9 @@ function ProfileEditor({
 }) {
   const [isEditing, setIsEditing] = useState(false);
   const [draftName, setDraftName] = useState(profile.name ?? "");
-  const [draftMessage, setDraftMessage] = useState(profile.status_message ?? "");
+  const [draftMessage, setDraftMessage] = useState(
+    profile.status_message ?? "",
+  );
   const [avatarFile, setAvatarFile] = useState<File | null>(null);
   const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
   const [isSaving, setIsSaving] = useState(false);
@@ -258,10 +261,6 @@ const deleteAvatar = async (path: string) => {
   }
 };
 
-
-
-
-
 export default function MyPage() {
   const router = useRouter();
   const [userId, setUserId] = useState<string | null>(null);
@@ -284,7 +283,7 @@ export default function MyPage() {
       const { data, error } = await supabase
         .from("users")
         .select(
-          "name, following_count, follower_count, status_message, avatar_path"
+          "name, following_count, follower_count, status_message, avatar_path",
         )
         .eq("id", user.id)
         .single();
@@ -329,7 +328,6 @@ export default function MyPage() {
     return null;
   }
 
-
   return (
     <div className="flex flex-1 flex-col gap-4 p-6">
       <div className="flex flex-col items-start gap-4 justify-start">
@@ -344,6 +342,8 @@ export default function MyPage() {
       </div>
 
       <SignOutButton />
+
+      <UserTags userId={userId} />
     </div>
   );
 }

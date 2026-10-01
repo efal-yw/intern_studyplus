@@ -23,7 +23,9 @@ export function UserTags({ userId }: { userId: string }) {
         return;
       }
 
-      setTags(data ?? []);
+      // app/mypage/user_tags.tsx と同じ理由で tag_id 単位にまとめる。
+      const rows = data ?? [];
+      setTags([...new Map(rows.map((row) => [row.tag_id, row])).values()]);
     }
 
     loadTags();

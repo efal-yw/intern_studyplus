@@ -2,9 +2,18 @@
 
 import { useEffect, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
+import { Pencil } from "lucide-react";
 
 type UserTag = { tag_id: string; tags: { name: string } | null };
 type Tag = { id: string; name: string };
+
+// 同じ tag_id の要素が2つ入ると key={tag.tag_id} が衝突して React が警告を出し、
+// 同じタグが2つ並ぶ。画面としては「付いている / 付いていない」しか意味が無いので、
+// state に入れる直前に tag_id 単位にまとめる。
+// setTags を呼ぶ場所が2つ (DB からの読み込みと保存後) あるので、両方に通す。
+function dedupeByTagId(rows: UserTag[]): UserTag[] {
+  return [...new Map(rows.map((row) => [row.tag_id, row])).values()];
+}
 
 // 編集フォーム。親の中ではなくモジュール直下に置く。
 // レンダー関数の中で定義すると毎レンダーで別のコンポーネント扱いになり、
@@ -173,7 +182,7 @@ export default function UserTags({ userId }: { userId: string }) {
         return;
       }
 
-      setTags(data ?? []);
+      setTags(dedupeByTagId(data ?? []));
     }
 
     loadTags();
@@ -181,38 +190,42 @@ export default function UserTags({ userId }: { userId: string }) {
 
   return (
     <div className="flex flex-col justify-start gap-2 bg-zinc-200 p-2 rounded-md">
-      <h2 className="font-bold gap-2">タグ</h2>
-      <div className="flex flex-wrap gap-2">
-        {tags.map((tag) => (
-          <span
-            key={tag.tag_id}
-            className="mx-2 my-1 rounded-md p-1 bg-zinc-100 text-sm"
+      <div className="flex w-full items-center justify-between ">
+        <h2 className="font-bold gap-2">タグ</h2>
+        {!isEditing && (
+          <button
+            type="button"
+            className="self-start"
+            onClick={() => setIsEditing(true)}
           >
-            {tag.tags?.name}
-          </span>
-        ))}
-        {tags.length === 0 && (
-          <span className="text-sm text-zinc-500">タグは未設定です</span>
+            <Pencil />
+          </button>
         )}
       </div>
-      {isEditing ? (
+      {!isEditing ? (
+        <div className="flex flex-wrap gap-2">
+          {tags.map((tag) => (
+            <span
+              key={tag.tag_id}
+              className="mx-2 my-1 rounded-md p-1 bg-zinc-100 text-sm"
+            >
+              {tag.tags?.name}
+            </span>
+          ))}
+          {tags.length === 0 && (
+            <span className="text-sm text-zinc-500">タグは未設定です</span>
+          )}
+        </div>
+      ) : (
         <TagEditor
           userId={userId}
           tags={tags}
           onSaved={(nextTags) => {
-            setTags(nextTags);
+            setTags(dedupeByTagId(nextTags));
             setIsEditing(false);
           }}
           onCancel={() => setIsEditing(false)}
         />
-      ) : (
-        <button
-          type="button"
-          className="self-start"
-          onClick={() => setIsEditing(true)}
-        >
-          タグを編集
-        </button>
       )}
     </div>
   );

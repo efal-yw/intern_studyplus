@@ -8,6 +8,7 @@ import AskPost from "./timeline/components/ask";
 import ScopeFilter from "./timeline/components/scope";
 import type { Scope } from "./timeline/components/getPosts";
 import { getCurrentUser } from "@/lib/auth/current-user";
+import Filter from "./timeline/components/filter";
 
 const SCOPES: ReadonlyArray<Scope> = ["all", "following", "mine"];
 
@@ -37,9 +38,16 @@ export default async function TimelinePage({
     getTags(postIds),
   ]);
 
+  const FilterInfo = {
+    type: ["knowledge", "ask", "record"],
+  };
+
   return (
     <>
-      <ScopeFilter scope={scope} />
+      <div className="flex">
+        <ScopeFilter scope={scope} />
+        <Filter FilterInfo={FilterInfo} />
+      </div>
       <div className="flex flex-col [&>*]:border-t [&>*]:border-zinc-200">
         {posts.map((post) => {
           const likeCount = counts.get(post.post_id) ?? 0;

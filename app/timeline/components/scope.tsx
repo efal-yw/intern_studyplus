@@ -30,17 +30,19 @@ export default function ScopeFilter({ scope }: { scope?: Scope }) {
   }
 
   return (
-    <div className="w-full p-2 grid grid-cols-3 place-items-center">
-      {SCOPE_OPTIONS.map((option) => (
-        <button
-          key={option.value}
-          onClick={() => handleChange(option.value)}
-          disabled={isPending}
-          className={option.value === scope ? "font-bold" : "text-gray-700"}
-        >
-          {option.label}
-        </button>
-      ))}
+    <div className="flex p-2">
+      <div className="w-full p-2 grid grid-cols-3 place-items-center">
+        {SCOPE_OPTIONS.map((option) => (
+          <button
+            key={option.value}
+            onClick={() => handleChange(option.value)}
+            disabled={isPending}
+            className={option.value === scope ? "font-bold" : "text-gray-700"}
+          >
+            {option.label}
+          </button>
+        ))}
+      </div>
     </div>
   );
 }

@@ -38,15 +38,11 @@ export default async function TimelinePage({
     getTags(postIds),
   ]);
 
-  const FilterInfo = {
-    type: ["knowledge", "ask", "record"],
-  };
-
   return (
     <>
-      <div className="flex">
+      <div className="flex bg-white">
         <ScopeFilter scope={scope} />
-        <Filter type={FilterInfo.type} />
+        <Filter />
       </div>
       <div className="flex flex-col [&>*]:border-t [&>*]:border-zinc-200">
         {posts.map((post) => {

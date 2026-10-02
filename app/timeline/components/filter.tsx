@@ -4,19 +4,19 @@ import { Search } from "lucide-react";
 import { useEffect, useState } from "react";
 
 export default function Filter() {
-  const [tags, setTags] = useState<string[] | null>(null);
+  const [tags, setTags] = useState<{ id: string; name: string }[] | null>(null);
 
   useEffect(() => {
     async function loadTags() {
       const supabase = createClient();
-      const { data, error } = await supabase.from("tags").select("id");
+      const { data, error } = await supabase.from("tags").select("id, name");
 
       if (error) {
         console.error(error);
         return;
       }
 
-      setTags(data.map((tag) => tag.id));
+      setTags(data);
     }
 
     void loadTags();
@@ -42,11 +42,13 @@ export default function Filter() {
 
   const [tagsIsOpen, setTagsIsOpen] = useState(false);
 
-  function toggleTags(tag: string) {
-    if (tags?.includes(tag)) {
-      setTags(tags.filter((t) => t !== tag));
+  const [selectedTagIds, setSelectedTagIds] = useState<string[]>([]);
+
+  function toggleTags(tag: { id: string; name: string }) {
+    if (selectedTagIds.includes(tag.id)) {
+      setSelectedTagIds(selectedTagIds.filter((id) => id !== tag.id));
     } else {
-      setTags(tags ? [...tags, tag] : [tag]);
+      setSelectedTagIds([...selectedTagIds, tag.id]);
     }
   }
 
@@ -74,11 +76,11 @@ export default function Filter() {
         {tagsIsOpen &&
           tags?.map((tag) => (
             <button
-              key={tag}
+              key={`tag-${tag.id}`}
               onClick={() => toggleTags(tag)}
-              className={`${tags?.includes(tag) ? "font-bold" : "text-gray-700"} rounded-md bg-zinc-100 m-1`}
+              className={`${selectedTagIds.includes(tag.id) ? "font-bold" : "text-gray-700"} rounded-md bg-zinc-100 m-1`}
             >
-              {tag}
+              {tag.name}
             </button>
           ))}
       </div>

@@ -59,7 +59,7 @@ export default function Filter() {
       </button>
     );
   return (
-    <div className="fixed top-0 right-0">
+    <div className="fixed top-0 right-0 z-20 bg-white">
       <div className="flex flex-col">
         <button onClick={() => setTypeIsOpen(!TypeIsOpen)}>投稿タイプ</button>
         {TypeIsOpen &&

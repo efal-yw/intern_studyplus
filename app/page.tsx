@@ -46,7 +46,7 @@ export default async function TimelinePage({
     <>
       <div className="flex">
         <ScopeFilter scope={scope} />
-        <Filter FilterInfo={FilterInfo} />
+        <Filter type={FilterInfo.type} />
       </div>
       <div className="flex flex-col [&>*]:border-t [&>*]:border-zinc-200">
         {posts.map((post) => {

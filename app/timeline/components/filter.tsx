@@ -2,9 +2,9 @@
 import { Search } from "lucide-react";
 import { useState } from "react";
 
-export default function Filter(FilterInfo) {
+export default function Filter({ type }: { type?: string[] | null }) {
   const [isOpen, setIsOpen] = useState(false);
-  const [postType, setPostType] = useState<string[] | null>(FilterInfo.type);
+  const [postType, setPostType] = useState<string[] | null>(type ?? null);
 
   function togglePostType(type: string) {
     if (postType?.includes(type)) {

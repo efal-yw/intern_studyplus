@@ -43,7 +43,6 @@ export default async function TimelinePage({
       <div className="flex bg-white">
         <ScopeFilter scope={scope} />
         <Filter />
-        <p>うんち</p>
       </div>
       <div className="flex flex-col [&>*]:border-t [&>*]:border-zinc-200">
         {posts.map((post) => {
